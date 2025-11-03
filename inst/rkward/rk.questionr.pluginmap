@@ -1,0 +1,82 @@
+<!DOCTYPE
+	rkpluginmap
+>
+<document
+	base_prefix=""
+	namespace="BarChartquestionr"
+	id="BarChartquestionr_rkward"
+	po_id="BarChartquestionr_rkward"
+	priority="medium"
+>
+	<!--
+		this code was generated using the rkwarddev package.
+	perhaps don't make changes here, but in the rkwarddev script instead!
+	-->
+	<!--
+		<dependencies>
+		</dependencies>
+	-->
+	<about
+		name="rk.questionr"
+		shortinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
+		longinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
+		version="0.4.1"
+		releasedate="2025-11-02"
+		url="https://github.com/AlfCano/rk.questionr"
+		license="GPL (&gt;= 3)"
+	>
+		<author
+			given="Alfonso"
+			family="Cano"
+			email="alfonso.cano@correo.buap.mx"
+			role="aut, cre"
+		/>
+	</about>
+	<require
+		map="rkward::menu"
+	/>
+	<require
+		map="rkward::embedded"
+	/>
+	<components>
+		<component
+			id="cmp_BarChartqustnrBrChrtqstnr"
+			label="Bar Chart (questionr)"
+			type="standard"
+			file="plugins/BarChartquestionr.xml"
+		>
+		</component>
+	</components>
+	<hierarchy>
+		<menu
+			id="men_Survey"
+			label="Survey"
+		>
+			<menu
+				id="men_Graphs"
+				label="Graphs"
+			>
+				<menu
+					id="men_ggGraphs"
+					label="ggGraphs"
+				>
+					<entry
+						component="cmp_BarChartqustnrBrChrtqstnr"
+					/>
+				</menu>
+			</menu>
+		</menu>
+	</hierarchy>
+	<!--
+		<context
+			id="x11"
+		>
+		</context>
+	-->
+	<!--
+		<context
+			id="import"
+		>
+		</context>
+	-->
+</document>

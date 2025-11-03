@@ -1,0 +1,17 @@
+Package: rk.questionr
+Type: Package
+Title: A plugin package to analyze complex survey designs with custom
+        plugins and the 'questionr' package.
+Version: 0.4.1
+Date: 2025-11-02
+Author: Alfonso Cano
+Maintainer: Alfonso Cano <alfonso.cano@correo.buap.mx>
+Enhances: rkward
+Description: A plugin package to analyze complex survey designs with
+        custom plugins and the 'questionr' package.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyLoad: yes
+URL: https://github.com/AlfCano/rk.questionr
+Authors@R: person(given="Alfonso", family="Cano",
+        email="alfonso.cano@correo.buap.mx", role=c("aut", "cre"))

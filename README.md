@@ -1,6 +1,6 @@
 # rk.questionr: Survey Data Visualization for RKWard
 
-![Version](https://img.shields.io/badge/Version-0.4.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.4.2-blue.svg)
 
 This RKWard plugin provides a powerful and user-friendly graphical interface for creating highly customized bar charts from complex survey data. It leverages the capabilities of the `questionr`, `ggsurvey`, `srvyr`, and `ggplot2` packages to produce publication-quality plots without writing code.
 

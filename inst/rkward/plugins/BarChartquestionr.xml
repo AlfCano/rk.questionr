@@ -84,14 +84,14 @@
 						</column>
 					</tab>
 					<tab label="Value Labels" id="tab_ValuLbls">
-						<column id="clm_cS1LSLSR1A">
+						<column id="clm_cS1LSPTTBL">
 							<checkbox id="show_value_labels" label="Show value labels on bars" value="1" />
-							<frame label="Label Style" id="frm_LablStyl">
-								<column id="clm_chckbxR1A1">
-									<checkbox id="label_repel" label="Repel labels to prevent overlap (ggrepel)" value="1" />
-									<checkbox id="label_background" label="Add background to labels (geom_label)" value="1" />
-								</column>
-							</frame>
+							<dropdown id="label_style" label="Label Style">
+								<option label="Plain Text" value="text" checked="true" />
+								<option label="Text with Background (Label)" value="label" />
+								<option label="Repelled Text (ggrepel)" value="text_repel" />
+								<option label="Repelled Label with Background (ggrepel)" value="label_repel" />
+							</dropdown>
 							<dropdown id="label_color_preset" label="Label Color Preset">
 								<option label="Black" value="black" checked="true" />
 								<option label="White" value="white" />

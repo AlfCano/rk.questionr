@@ -2,8 +2,8 @@ Package: rk.questionr
 Type: Package
 Title: A plugin package to analyze complex survey designs with custom
         plugins and the 'questionr' package.
-Version: 0.4.1
-Date: 2025-11-02
+Version: 0.4.2
+Date: 2025-11-03
 Author: Alfonso Cano
 Maintainer: Alfonso Cano <alfonso.cano@correo.buap.mx>
 Enhances: rkward

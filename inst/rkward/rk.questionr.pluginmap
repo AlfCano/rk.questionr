@@ -20,8 +20,8 @@
 		name="rk.questionr"
 		shortinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
 		longinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
-		version="0.4.1"
-		releasedate="2025-11-02"
+		version="0.4.2"
+		releasedate="2025-11-03"
 		url="https://github.com/AlfCano/rk.questionr"
 		license="GPL (&gt;= 3)"
 	>

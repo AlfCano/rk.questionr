@@ -108,7 +108,7 @@ function calculate(is_preview){
     var invert_order = (getValue("invert_order") === "1");
     var coord_flip = (getValue("coord_flip") === "1");
     var palette = getValue("palette_input");
-    var show_labels = getValue("show_value_labels") === "1";
+    var show_labels = (getValue("show_value_labels") === "1");
 
     var x_var_for_plot = x_var;
 
@@ -164,23 +164,29 @@ function calculate(is_preview){
 
     } else { // Absolute Frequency
         var pre_ggsurvey_pipe = "";
+        x_var_for_plot = x_var;
+
         if (order_x) {
+            pre_ggsurvey_pipe += "  {\n";
             if (fill_var && order_level && !facet_var) {
-                pre_ggsurvey_pipe += "  {\n";
                 pre_ggsurvey_pipe += "    ordering_df <- survey::svytable(~" + x_var + " + " + fill_var + ", design = .)\n";
                 pre_ggsurvey_pipe += "    ordering_df <- as.data.frame(ordering_df)\n";
                 pre_ggsurvey_pipe += "    ordered_levels <- ordering_df %>%\n";
                 pre_ggsurvey_pipe += "      dplyr::filter(" + fill_var + " == \"" + order_level + "\") %>%\n";
                 pre_ggsurvey_pipe += "      dplyr::arrange(dplyr::desc(Freq)) %>%\n";
                 pre_ggsurvey_pipe += "      dplyr::pull(" + x_var + ")\n";
-                pre_ggsurvey_pipe += "    if(" + invert_order + ") { ordered_levels <- rev(ordered_levels) }\n";
-                pre_ggsurvey_pipe += "    .$variables$" + x_var + " <- factor(as.character(.$variables$" + x_var + "), levels = ordered_levels)\n";
-                pre_ggsurvey_pipe += "    . \n";
-                pre_ggsurvey_pipe += "  } %>%\n";
             } else {
-                var base_order_call = "forcats::fct_infreq(" + x_var + ")";
-                x_var_for_plot = invert_order ? base_order_call : "forcats::fct_rev(" + base_order_call + ")";
+                pre_ggsurvey_pipe += "    ordering_df <- survey::svytable(~" + x_var + ", design = .)\n";
+                pre_ggsurvey_pipe += "    ordering_df <- as.data.frame(ordering_df)\n";
+                pre_ggsurvey_pipe += "    ordered_levels <- ordering_df %>%\n";
+                pre_ggsurvey_pipe += "      dplyr::arrange(dplyr::desc(Freq)) %>%\n";
+                pre_ggsurvey_pipe += "      dplyr::pull(" + x_var + ")\n";
             }
+            var r_invert_order = invert_order ? "TRUE" : "FALSE";
+            pre_ggsurvey_pipe += "    if(" + r_invert_order + ") { ordered_levels <- rev(ordered_levels) }\n";
+            pre_ggsurvey_pipe += "    .$variables$" + x_var + " <- factor(as.character(.$variables$" + x_var + "), levels = ordered_levels)\n";
+            pre_ggsurvey_pipe += "    . \n";
+            pre_ggsurvey_pipe += "  } %>%\n";
         }
 
         echo("p <- " + processed_svy_obj + " %>%\n");
@@ -198,8 +204,7 @@ function calculate(is_preview){
     }
 
     if(show_labels){
-      var use_repel = getValue("label_repel") === "1";
-      var use_label = getValue("label_background") === "1";
+      var label_style = getValue("label_style");
       var label_size = getValue("label_size");
       var label_decimals = getValue("label_decimals");
       var accuracy = 1 / Math.pow(10, parseInt(label_decimals));
@@ -211,21 +216,32 @@ function calculate(is_preview){
       }
 
       var label_geom;
-      if(use_repel && use_label) { label_geom = "ggrepel::geom_label_repel"; }
-      else if(use_repel) { label_geom = "ggrepel::geom_text_repel"; }
-      else if(use_label) { label_geom = "ggplot2::geom_label"; }
-      else { label_geom = "ggplot2::geom_text"; }
+      var is_stacked = (freq_type !== "rel" && (bar_pos === "stack" || bar_pos === "fill"));
+
+      if (label_style === "label_repel" && is_stacked) {
+          // Fallback for the incompatible combination
+          label_geom = "ggplot2::geom_label";
+      } else if (label_style === "label_repel") {
+          label_geom = "ggrepel::geom_label_repel";
+      } else if (label_style === "text_repel") {
+          label_geom = "ggrepel::geom_text_repel";
+      } else if (label_style === "label") {
+          label_geom = "ggplot2::geom_label";
+      } else {
+          label_geom = "ggplot2::geom_text";
+      }
 
       var other_opts = [];
-      if(use_label){ other_opts.push("fill=\"white\""); }
-      if(use_repel){ other_opts.push("max.overlaps = " + getValue("label_max_overlaps")); }
+      if(label_geom.indexOf("label") > -1){ other_opts.push("fill=\"white\""); }
+      if(label_geom.indexOf("repel") > -1){ other_opts.push("max.overlaps = " + getValue("label_max_overlaps")); }
 
       var label_aes;
       if (freq_type === "rel") {
           label_aes = "label = scales::percent(Prop, accuracy = " + accuracy + ")";
           var y_pos_aes = fill_var ? "y = label_y_pos" : "y = Prop";
           var vjust = fill_var ? "" : ", vjust = -0.5";
-          echo(" +\n  " + label_geom + "(aes(" + y_pos_aes + ", " + label_aes + ")" + vjust + ", size=" + label_size + ", color=\"" + final_color + "\", " + other_opts.join(", ") + ")");
+          var other_opts_str = other_opts.length > 0 ? ", " + other_opts.join(", ") : "";
+          echo(" +\n  " + label_geom + "(aes(" + y_pos_aes + ", " + label_aes + ")" + vjust + ", size=" + label_size + ", color=\"" + final_color + "\"" + other_opts_str + ")");
       } else { // Absolute
           var geom_opts = "";
           var stat_call = "stat=\"count\"";
@@ -239,8 +255,8 @@ function calculate(is_preview){
           } else { // stack
               geom_opts = "position = ggplot2::position_stack(vjust = 0.5)";
           }
-
-          echo(" +\n  " + label_geom + "(aes(" + label_aes + "), " + stat_call + ", " + geom_opts + ", size=" + label_size + ", color=\"" + final_color + "\", " + other_opts.join(", ") + ")");
+          var other_opts_str = other_opts.length > 0 ? ", " + other_opts.join(", ") : "";
+          echo(" +\n  " + label_geom + "(aes(" + label_aes + "), " + stat_call + ", " + geom_opts + ", size=" + label_size + ", color=\"" + final_color + "\"" + other_opts_str + ")");
       }
     }
 

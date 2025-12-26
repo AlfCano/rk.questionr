@@ -18,10 +18,10 @@
 	-->
 	<about
 		name="rk.questionr"
-		shortinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
-		longinfo="A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package."
-		version="0.4.3"
-		releasedate="2025-11-17"
+		shortinfo="A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables."
+		longinfo="A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables."
+		version="0.4.4"
+		releasedate="2025-12-26"
 		url="https://github.com/AlfCano/rk.questionr"
 		license="GPL (&gt;= 3)"
 	>
@@ -40,6 +40,27 @@
 	/>
 	<components>
 		<component
+			id="cmp_BarChartqustnrHstgrmqstnr"
+			label="Histogram (questionr)"
+			type="standard"
+			file="plugins/Histogramquestionr.xml"
+		>
+		</component>
+		<component
+			id="cmp_BarChartquestnrBxpltqstnr"
+			label="Boxplot (questionr)"
+			type="standard"
+			file="plugins/Boxplotquestionr.xml"
+		>
+		</component>
+		<component
+			id="cmp_BrChrtqstnrFrqncyTblqstnr"
+			label="Frequency Table (questionr)"
+			type="standard"
+			file="plugins/FrequencyTablequestionr.xml"
+		>
+		</component>
+		<component
 			id="cmp_BarChartqustnrBrChrtqstnr"
 			label="Bar Chart (questionr)"
 			type="standard"
@@ -48,6 +69,55 @@
 		</component>
 	</components>
 	<hierarchy>
+		<menu
+			id="men_Survey"
+			label="Survey"
+		>
+			<menu
+				id="men_Graphs"
+				label="Graphs"
+			>
+				<menu
+					id="men_ggGraphs"
+					label="ggGraphs"
+				>
+					<entry
+						component="cmp_BarChartqustnrHstgrmqstnr"
+					/>
+				</menu>
+			</menu>
+		</menu>
+		<menu
+			id="men_Survey"
+			label="Survey"
+		>
+			<menu
+				id="men_Graphs"
+				label="Graphs"
+			>
+				<menu
+					id="men_ggGraphs"
+					label="ggGraphs"
+				>
+					<entry
+						component="cmp_BarChartquestnrBxpltqstnr"
+					/>
+				</menu>
+			</menu>
+		</menu>
+		<menu
+			id="men_Survey"
+			label="Survey"
+		>
+			<menu
+				id="men_Descriptiv"
+				label="Descriptive"
+			>
+				<entry
+					component="cmp_BrChrtqstnrFrqncyTblqstnr"
+				/>
+			</menu>
+		</menu>
 		<menu
 			id="men_Survey"
 			label="Survey"

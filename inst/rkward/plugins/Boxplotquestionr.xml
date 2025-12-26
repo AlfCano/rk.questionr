@@ -4,8 +4,8 @@
 		this code was generated using the rkwarddev package.
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
-	<code file="BarChartquestionr.js" />
-	<help file="BarChartquestionr.rkh" />
+	<code file="Boxplotquestionr.js" />
+	<help file="Boxplotquestionr.rkh" />
 	<!--
 		<dependencies>
 		</dependencies>
@@ -18,44 +18,21 @@
 			<connect governor="!edit!.state" client="!edit!.enabled" />
 		-->
 	</logic>
-	<dialog label="Survey Bar Chart (questionr)">
-		<row id="row_vSDDSDVFFO">
+	<dialog label="Survey Boxplot (questionr)">
+		<row id="row_vSDDSDNVYG">
 			<varselector id="svy_selector" label="Select survey object" />
-			<column id="clm_tDDSDVFFON">
+			<column id="clm_tDDSDNVYGV">
 				<tabbook>
 					<tab label="Data" id="tab_Data">
-						<column id="clm_vSDVFFONA1">
+						<column id="clm_vrSDNVYGVX">
 							<varslot id="svy_object" label="Survey Design" source="svy_selector" classes="survey.design svyrep.design" required="true" />
-							<varslot id="x_var" label="Variable" source="svy_selector" required="true" />
-							<varslot id="fill_var" label="Fill" source="svy_selector" />
-							<varslot id="facet_var" label="Facet" source="svy_selector" />
-							<checkbox id="omit_na" label="Omit NA cases from selected variables" value="1" checked="true" />
+							<varslot id="y_var" label="Numeric Variable (Y)" source="svy_selector" classes="numeric integer" required="true" />
+							<varslot id="x_var" label="Grouping Variable (X)" source="svy_selector" classes="factor character" />
 						</column>
 					</tab>
 					<tab label="Options" id="tab_Options">
-						<column id="clm_dFARBSDFPX">
-							<dropdown id="freq_type" label="Frequency type">
-								<option label="Absolute" value="abs" checked="true" />
-								<option label="Relative" value="rel" />
-							</dropdown>
-							<dropdown id="bar_pos" label="Bar position">
-								<option label="Stack" value="stack" checked="true" />
-								<option label="Dodge" value="dodge" />
-								<option label="Fill (Prop)" value="fill" />
-							</dropdown>
-							<frame label="X-axis Ordering" id="frm_XxsOrdrn">
-								<column id="clm_chcOX1I1OF">
-									<checkbox id="order_x_freq" label="Order X-axis by frequency" value="1" />
-									<checkbox id="invert_order" label="Invert final order" value="1" />
-									<input label="Order by level of Fill var (optional)" id="order_by_level_input" />
-								</column>
-							</frame>
-							<checkbox id="coord_flip" label="Flip coordinates" value="1" />
-							<dropdown id="facet_layout" label="Facet Layout">
-								<option label="Wrap" value="wrap" checked="true" />
-								<option label="Row" value="row" />
-								<option label="Col" value="col" />
-							</dropdown>
+						<column id="clm_cFG1CPCBDP">
+							<checkbox id="fill_by_group" label="Fill by Group" value="1" checked="true" />
 							<dropdown id="palette_input" label="Color Palette (ColorBrewer)">
 								<option label="Default (Paired)" value="Paired" checked="true" />
 								<option label="Accent" value="Accent" />
@@ -73,28 +50,7 @@
 								<option label="RdYlBu" value="RdYlBu" />
 								<option label="Spectral" value="Spectral" />
 							</dropdown>
-						</column>
-					</tab>
-					<tab label="Value Labels" id="tab_ValuLbls">
-						<column id="clm_cSL1TPTLBR">
-							<checkbox id="show_value_labels" label="Show Labels" value="1" />
-							<dropdown id="label_style" label="Type">
-								<option label="Plain Text" value="text" checked="true" />
-								<option label="Label (Bg)" value="label" />
-								<option label="Repelled Text" value="text_repel" />
-								<option label="Repelled Label" value="label_repel" />
-							</dropdown>
-							<dropdown id="label_color_preset" label="Color Preset">
-								<option label="Black" value="black" checked="true" />
-								<option label="White" value="white" />
-								<option label="Grey" value="grey50" />
-								<option label="Blue" value="blue" />
-								<option label="Custom" value="custom" />
-							</dropdown>
-							<input label="Custom Color" id="label_color_custom" />
-							<spinbox label="Size" id="label_size" initial="3" min="1" max="20" />
-							<spinbox label="Decimals" id="label_decimals" initial="1" min="0" max="5" />
-							<spinbox label="Max Overlaps" id="label_max_overlaps" initial="10" min="0" max="1000" />
+							<checkbox id="coord_flip" label="Flip Coordinates" value="1" />
 						</column>
 					</tab>
 					<tab label="Labels" id="tab_Labels">

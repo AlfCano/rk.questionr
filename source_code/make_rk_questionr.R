@@ -14,15 +14,15 @@ local({
       role = c("aut", "cre")
     ),
     about = list(
-      desc = "A plugin package to analyze complex survey designs with custom plugins and the 'questionr' package.",
-      version = "0.4.2",
+      desc = "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables.",
+      version = "0.4.4",
       url = "https://github.com/AlfCano/rk.questionr",
       license = "GPL (>= 3)"
     )
   )
 
   # =========================================================================================
-  # --- Reusable UI Components & JS Helpers ---
+  # --- 1. SHARED UI RESOURCES ---
   # =========================================================================================
 
   js_helpers <- '
@@ -32,62 +32,14 @@ local({
         if (lastBracketPos > -1) {
             var lastPart = fullName.substring(lastBracketPos);
             var match = lastPart.match(/\\[\\[\\"(.*?)\\"\\]\\]/);
-            if (match) {
-                return match[1];
-            }
+            if (match) { return match[1]; }
         }
-        if (fullName.indexOf("$") > -1) {
-            return fullName.substring(fullName.lastIndexOf("$") + 1);
-        } else {
-            return fullName;
-        }
+        if (fullName.indexOf("$") > -1) { return fullName.substring(fullName.lastIndexOf("$") + 1); }
+        else { return fullName; }
     }
   '
 
-  labels_tab <- rk.XML.col(
-    rk.XML.input(label = "Plot Title", id.name = "plot_title"),
-    rk.XML.input(label = "Plot Subtitle", id.name = "plot_subtitle"),
-    rk.XML.input(label = "X-axis Label (blank for auto)", id.name = "plot_xlab"),
-    rk.XML.spinbox(label = "Wrap X-axis Label at (chars, 0 to disable)", id.name = "plot_xlab_wrap", min = 0, max = 100, initial = 0),
-    rk.XML.input(label = "Y-axis Label", id.name = "plot_ylab"),
-    rk.XML.spinbox(label = "Wrap Y-axis Label at (chars, 0 to disable)", id.name = "plot_ylab_wrap", min = 0, max = 100, initial = 0),
-    rk.XML.input(label = "Legend Title (blank for auto)", id.name = "plot_legend_title"),
-    rk.XML.spinbox(label = "Wrap Legend Title at (chars, 0 to disable)", id.name = "legend_title_wrap_width", min = 0, max = 100, initial = 20),
-    rk.XML.spinbox(label = "Wrap Legend Labels at (chars, 0 to disable)", id.name = "legend_wrap_width", min = 0, max = 100, initial = 20),
-    rk.XML.input(label = "Plot Caption", id.name = "plot_caption")
-  )
-
-  value_labels_tab <- rk.XML.col(
-    rk.XML.cbox(label="Show value labels on bars", id.name="show_value_labels", value="1"),
-    rk.XML.dropdown(label="Label Style", id.name="label_style", options=list(
-        "Plain Text"=list(val="text", chk=TRUE),
-        "Text with Background (Label)"=list(val="label"),
-        "Repelled Text (ggrepel)"=list(val="text_repel"),
-        "Repelled Label with Background (ggrepel)"=list(val="label_repel")
-    )),
-    rk.XML.dropdown(label="Label Color Preset", id.name="label_color_preset", options=list(
-        "Black"=list(val="black", chk=TRUE),
-        "White"=list(val="white"),
-        "Grey"=list(val="grey50"),
-        "Blue"=list(val="blue"),
-        "Red"=list(val="red"),
-        "Use Custom Field Below"=list(val="custom")
-    )),
-    rk.XML.input(label="Custom Label Color (e.g., #FFC0CB)", id.name="label_color_custom"),
-    rk.XML.spinbox(label="Label text size", id.name="label_size", min=1, max=20, initial=3, real=TRUE),
-    rk.XML.spinbox(label="Decimal places (for %)", id.name="label_decimals", min=0, max=5, initial=1),
-    rk.XML.spinbox(label="Max. Overlaps (if repelling)", id.name="label_max_overlaps", min=0, max=1000, initial=10)
-  )
-
-  device_tab <- rk.XML.col(
-    rk.XML.dropdown(label = "Device type", id.name = "device_type", options = list("PNG" = list(val = "PNG", chk = TRUE), "SVG" = list(val = "SVG"), "JPG" = list(val = "JPG"))),
-    rk.XML.spinbox(label = "JPG Quality (0-100)", id.name = "jpg_quality", min = 0, max = 100, initial = 75),
-    rk.XML.spinbox(label = "Width (px)", id.name = "dev_width", min = 100, max = 4000, initial = 1024),
-    rk.XML.spinbox(label = "Height (px)", id.name = "dev_height", min = 100, max = 4000, initial = 724),
-    rk.XML.spinbox(label = "Resolution (ppi)", id.name = "dev_res", min = 50, max = 600, initial = 200),
-    rk.XML.dropdown(label = "Background", id.name = "dev_bg", options = list("Transparent" = list(val = "transparent", chk = TRUE), "White" = list(val = "white")))
-  )
-
+  # Full Palette Dropdown
   color_palette_dropdown <- rk.XML.dropdown(label = "Color Palette (ColorBrewer)", id.name = "palette_input", options = list(
     "Default (Paired)" = list(val = "Paired", chk = TRUE), "Accent" = list(val = "Accent"), "Dark2" = list(val = "Dark2"),
     "Pastel1" = list(val = "Pastel1"), "Pastel2" = list(val = "Pastel2"), "Set1" = list(val = "Set1"),
@@ -96,406 +48,299 @@ local({
     "Purples" = list(val = "Purples"), "RdYlBu" = list(val = "RdYlBu"), "Spectral" = list(val = "Spectral")
   ))
 
-  js_printout <- '
-    if(!is_preview){
-      var graph_options = [];
-      graph_options.push("device.type=\\"" + getValue("device_type") + "\\"");
-      graph_options.push("width=" + getValue("dev_width"));
-      graph_options.push("height=" + getValue("dev_height"));
-      graph_options.push("res=" + getValue("dev_res"));
-      graph_options.push("bg=\\"" + getValue("dev_bg") + "\\"");
-      if(getValue("device_type") === "JPG"){
-        graph_options.push("quality=" + getValue("jpg_quality"));
-      }
-      echo("try(rk.graph.on(" + graph_options.join(", ") + "))\\n");
-    }
-    echo("try(print(p))\\n");
-    if(!is_preview){
-      echo("try(rk.graph.off())\\n");
-    }
-  '
-
-  # =========================================================================================
-  # --- Main Plugin: Survey Bar Chart ---
-  # =========================================================================================
-
-  svy_selector <- rk.XML.varselector(id.name = "svy_selector", label = "Select survey data object")
-  svy_object_slot <- rk.XML.varslot(label = "Survey design object", source = "svy_selector", required = TRUE, id.name = "svy_object", classes = c("survey.design", "svyrep.design"))
-  x_var_slot <- rk.XML.varslot(label = "X-axis variable (categorical)", source = "svy_selector", required = TRUE, id.name = "x_var"); attr(x_var_slot, "source_property") <- "variables"
-  fill_var_slot <- rk.XML.varslot(label = "Fill variable (optional)", source = "svy_selector", id.name = "fill_var"); attr(fill_var_slot, "source_property") <- "variables"
-  facet_var_slot <- rk.XML.varslot(label = "Faceting variable (optional)", source = "svy_selector", id.name = "facet_var"); attr(facet_var_slot, "source_property") <- "variables"
-
-  data_tab <- rk.XML.col(
-    svy_object_slot,
-    x_var_slot,
-    fill_var_slot,
-    facet_var_slot,
-    rk.XML.cbox(label = "Omit NA cases from selected variables", id.name = "omit_na", value = "1", chk = TRUE)
-  )
-
-  ordering_frame <- rk.XML.frame(
-    label = "X-axis Ordering",
-    child = rk.XML.col(
-        rk.XML.cbox(label = "Order X-axis by frequency/proportion", id.name = "order_x_freq", value = "1"),
-        rk.XML.cbox(label = "Invert final order (for top-to-bottom plots)", id.name = "invert_order", value = "1"),
-        rk.XML.input(label = "Order by this level of the Fill variable", id.name = "order_by_level_input"),
-        rk.XML.text("<br/><i>Note: Ordering by level is disabled<br/>when faceting absolute frequencies.</i>")
-    )
-  )
-
-  options_tab <- rk.XML.col(
-    rk.XML.dropdown(label = "Frequency type", id.name = "freq_type", options = list("Absolute" = list(val = "abs", chk = TRUE), "Relative" = list(val = "rel"))),
-    rk.XML.dropdown(label = "Bar position (for absolute freq.)", id.name = "bar_pos", options = list("Stack" = list(val = "stack", chk = TRUE), "Dodge" = list(val = "dodge"), "Fill (Proportional)" = list(val = "fill"))),
-    ordering_frame,
-    rk.XML.cbox(label = "Flip coordinates", id.name = "coord_flip", value = "1"),
-    rk.XML.dropdown(label="Facet Layout", id.name="facet_layout", options=list(
-        "Default Wrap"=list(val="wrap", chk=TRUE), "Single Row"=list(val="row"), "Single Column"=list(val="col")
-    )),
-    color_palette_dropdown
+  labels_tab <- rk.XML.col(
+    rk.XML.input(label = "Plot Title", id.name = "plot_title"),
+    rk.XML.input(label = "Plot Subtitle", id.name = "plot_subtitle"),
+    rk.XML.input(label = "X-axis Label (blank for auto)", id.name = "plot_xlab"),
+    rk.XML.spinbox(label = "Wrap X-axis Label at (chars)", id.name = "plot_xlab_wrap", min = 0, max = 100, initial = 0),
+    rk.XML.input(label = "Y-axis Label", id.name = "plot_ylab"),
+    rk.XML.spinbox(label = "Wrap Y-axis Label at (chars)", id.name = "plot_ylab_wrap", min = 0, max = 100, initial = 0),
+    rk.XML.input(label = "Legend Title (blank for auto)", id.name = "plot_legend_title"),
+    rk.XML.spinbox(label = "Wrap Legend Title at (chars)", id.name = "legend_title_wrap_width", min = 0, max = 100, initial = 20),
+    rk.XML.spinbox(label = "Wrap Legend Labels at (chars)", id.name = "legend_wrap_width", min = 0, max = 100, initial = 20),
+    rk.XML.input(label = "Plot Caption", id.name = "plot_caption")
   )
 
   theme_tab <- rk.XML.col(
-      rk.XML.spinbox(label="Overall text size relative adjustment", id.name="theme_text_rel", min=0.1, max=5, initial=1, real=TRUE),
-      rk.XML.spinbox(label="Plot title size relative adjustment", id.name="theme_title_rel", min=0.1, max=5, initial=1.2, real=TRUE),
-      rk.XML.spinbox(label="Legend text size relative adjustment", id.name="theme_legend_rel", min=0.1, max=5, initial=0.8, real=TRUE),
+      rk.XML.spinbox(label="Overall text size", id.name="theme_text_rel", min=0.1, max=5, initial=1, real=TRUE),
       rk.XML.dropdown(label="Legend Position", id.name="theme_legend_pos", options=list(
-          "Right (Default)"=list(val="right", chk=TRUE), "Left"=list(val="left"),
+          "Right"=list(val="right", chk=TRUE), "Left"=list(val="left"),
           "Top"=list(val="top"), "Bottom"=list(val="bottom"), "None"=list(val="none")
       )),
       rk.XML.frame(label="X-Axis Text", child=rk.XML.row(
         rk.XML.spinbox(label="Angle", id.name="theme_x_angle", min=0, max=90, initial=0),
         rk.XML.spinbox(label="H-Just", id.name="theme_x_hjust", min=0, max=1, initial=0.5, real=TRUE),
-        rk.XML.spinbox(label="V-Just", id.name="theme_x_vjust", min=0, max=1, initial=0.5, real=TRUE)
+        rk.XML.spinbox(label="Value Labels Wrap (chars)", id.name="theme_x_val_wrap", min=0, max=100, initial=0)
       )),
-      rk.XML.frame(label="X-Axis Value Labels", child=rk.XML.spinbox(label="Wrap at (chars)", id.name="theme_x_val_wrap", min=0, max=100, initial=0)),
-      rk.XML.frame(label="Y-Axis Value Labels", child=rk.XML.spinbox(label="Wrap at (chars)", id.name="theme_y_val_wrap", min=0, max=100, initial=0))
+      rk.XML.frame(label="Y-Axis Text", child=rk.XML.row(
+        rk.XML.spinbox(label="Value Labels Wrap (chars)", id.name="theme_y_val_wrap", min=0, max=100, initial=0)
+      ))
   )
 
-  main_dialog <- rk.XML.dialog(
-    label = "Survey Bar Chart (ggsurvey)",
-    child = rk.XML.row(
-      svy_selector,
-      rk.XML.col(
-        rk.XML.tabbook(tabs = list(
-          "Data" = data_tab,
-          "Options" = options_tab,
-          "Value Labels" = value_labels_tab,
-          "Labels" = labels_tab,
-          "Theme" = theme_tab,
-          "Output Device" = device_tab
-        )),
-        rk.XML.preview(id.name = "plot_preview")
-      )
+  device_tab <- rk.XML.col(
+    rk.XML.dropdown(label = "Device type", id.name = "device_type", options = list("PNG" = list(val = "PNG", chk = TRUE), "SVG" = list(val = "SVG"))),
+    rk.XML.spinbox(label = "Width (px)", id.name = "dev_width", min = 100, max = 4000, initial = 1024),
+    rk.XML.spinbox(label = "Height (px)", id.name = "dev_height", min = 100, max = 4000, initial = 724),
+    rk.XML.dropdown(label = "Background", id.name = "dev_bg", options = list("Transparent" = list(val = "transparent", chk = TRUE), "White" = list(val = "white")))
+  )
+
+  js_printout_shared <- '
+    if(!is_preview){
+      var graph_options = [];
+      graph_options.push("device.type=\\"" + getValue("device_type") + "\\"");
+      graph_options.push("width=" + getValue("dev_width"));
+      graph_options.push("height=" + getValue("dev_height"));
+      graph_options.push("bg=\\"" + getValue("dev_bg") + "\\"");
+      echo("try(rk.graph.on(" + graph_options.join(", ") + "))\\n");
+    }
+    echo("try(print(p))\\n");
+    if(!is_preview){ echo("try(rk.graph.off())\\n"); }
+  '
+
+  js_apply_theme <- '
+    var labs = [];
+    var xl = getValue("plot_xlab"); var xlw = getValue("plot_xlab_wrap");
+    if(xl) { if(xlw > 0) xl = "scales::label_wrap(" + xlw + ")(\\\"" + xl + "\\\")"; else xl = "\\\"" + xl + "\\\""; labs.push("x=" + xl); }
+    var yl = getValue("plot_ylab"); var ylw = getValue("plot_ylab_wrap");
+    if(yl) { if(ylw > 0) yl = "scales::label_wrap(" + ylw + ")(\\\"" + yl + "\\\")"; else yl = "\\\"" + yl + "\\\""; labs.push("y=" + yl); }
+    var leg = getValue("plot_legend_title"); var legw = getValue("legend_title_wrap_width");
+    if(leg) { if(legw > 0) leg = "scales::label_wrap(" + legw + ")(\\\"" + leg + "\\\")"; else leg = "\\\"" + leg + "\\\""; labs.push("fill=" + leg); }
+    if(getValue("plot_title")) labs.push("title=\\"" + getValue("plot_title") + "\\"");
+    if(getValue("plot_subtitle")) labs.push("subtitle=\\"" + getValue("plot_subtitle") + "\\"");
+    if(getValue("plot_caption")) labs.push("caption=\\"" + getValue("plot_caption") + "\\"");
+    if(labs.length > 0) echo("p <- p + ggplot2::labs(" + labs.join(",") + ")\\n");
+
+    if(getValue("theme_x_val_wrap") > 0) echo("p <- p + ggplot2::scale_x_discrete(labels = scales::label_wrap(" + getValue("theme_x_val_wrap") + "))\\n");
+    if(getValue("theme_y_val_wrap") > 0) echo("p <- p + ggplot2::scale_y_discrete(labels = scales::label_wrap(" + getValue("theme_y_val_wrap") + "))\\n");
+
+    var thm = [];
+    if(getValue("theme_text_rel") != 1) thm.push("text=ggplot2::element_text(size=ggplot2::rel(" + getValue("theme_text_rel") + "))");
+    if(getValue("theme_legend_pos") != "right") thm.push("legend.position=\\"" + getValue("theme_legend_pos") + "\\"");
+    if(getValue("theme_x_angle") != 0) thm.push("axis.text.x=ggplot2::element_text(angle=" + getValue("theme_x_angle") + ", hjust=" + getValue("theme_x_hjust") + ")");
+    if(thm.length > 0) echo("p <- p + ggplot2::theme(" + thm.join(",") + ")\\n");
+  '
+
+  svy_selector <- rk.XML.varselector(id.name = "svy_selector", label = "Select survey object")
+
+  # =========================================================================================
+  # --- COMPONENT 1: Survey Bar Chart (questionr) ---
+  # =========================================================================================
+
+  help_bar <- rk.rkh.doc(
+    title = rk.rkh.title("Survey Bar Chart (questionr)"),
+    summary = rk.rkh.summary("Create a bar chart for categorical variables from a complex survey design object, using the 'questionr' and 'ggsurvey' packages."),
+    usage = rk.rkh.usage("Select a survey design object and a categorical variable. Optionally select a Fill variable and Facet variable."),
+    settings = rk.rkh.settings(
+        rk.rkh.setting(id = "svy_object", text = "The survey design object (created with the 'survey' or 'srvyr' package)."),
+        rk.rkh.setting(id = "x_var", text = "The main categorical variable to plot on the X-axis."),
+        rk.rkh.setting(id = "fill_var", text = "(Optional) A second categorical variable to determine the bar colors.")
     )
   )
 
-  # --- JavaScript Logic ---
-  js_calculate <- paste(js_helpers, '
-    var svy_obj = getValue("svy_object");
-    var x_var_full = getValue("x_var");
-    var fill_var_full = getValue("fill_var");
-    var facet_var_full = getValue("facet_var");
+  bar_svy <- rk.XML.varslot(label = "Survey Design", source = "svy_selector", required = TRUE, id.name = "svy_object", classes = c("survey.design", "svyrep.design"))
+  bar_x <- rk.XML.varslot(label = "Variable", source = "svy_selector", required = TRUE, id.name = "x_var")
+  bar_fill <- rk.XML.varslot(label = "Fill", source = "svy_selector", id.name = "fill_var")
+  bar_facet <- rk.XML.varslot(label = "Facet", source = "svy_selector", id.name = "facet_var")
+  bar_data_tab <- rk.XML.col(bar_svy, bar_x, bar_fill, bar_facet, rk.XML.cbox(label = "Omit NA cases from selected variables", id.name = "omit_na", value = "1", chk = TRUE))
+  ordering_frame <- rk.XML.frame(label = "X-axis Ordering", child = rk.XML.col(rk.XML.cbox(label = "Order X-axis by frequency", id.name = "order_x_freq", value = "1"), rk.XML.cbox(label = "Invert final order", id.name = "invert_order", value = "1"), rk.XML.input(label = "Order by level of Fill var (optional)", id.name = "order_by_level_input")))
+  bar_opts_tab <- rk.XML.col(rk.XML.dropdown(label = "Frequency type", id.name = "freq_type", options = list("Absolute" = list(val = "abs", chk = TRUE), "Relative" = list(val = "rel"))), rk.XML.dropdown(label = "Bar position", id.name = "bar_pos", options = list("Stack" = list(val = "stack", chk = TRUE), "Dodge" = list(val = "dodge"), "Fill (Prop)" = list(val = "fill"))), ordering_frame, rk.XML.cbox(label = "Flip coordinates", id.name = "coord_flip", value = "1"), rk.XML.dropdown(label="Facet Layout", id.name="facet_layout", options=list("Wrap"=list(val="wrap", chk=TRUE), "Row"=list(val="row"), "Col"=list(val="col"))), color_palette_dropdown)
+  value_labels_tab <- rk.XML.col(rk.XML.cbox(label="Show Labels", id.name="show_value_labels", value="1"), rk.XML.dropdown(label="Type", id.name="label_style", options=list("Plain Text"=list(val="text", chk=TRUE), "Label (Bg)"=list(val="label"), "Repelled Text"=list(val="text_repel"), "Repelled Label"=list(val="label_repel"))), rk.XML.dropdown(label="Color Preset", id.name="label_color_preset", options=list("Black"=list(val="black", chk=TRUE), "White"=list(val="white"), "Grey"=list(val="grey50"), "Blue"=list(val="blue"), "Custom"=list(val="custom"))), rk.XML.input(label="Custom Color", id.name="label_color_custom"), rk.XML.spinbox(label="Size", id.name="label_size", min=1, max=20, initial=3, real=TRUE), rk.XML.spinbox(label="Decimals", id.name="label_decimals", min=0, max=5, initial=1), rk.XML.spinbox(label="Max Overlaps", id.name="label_max_overlaps", min=0, max=1000, initial=10))
 
-    if (!svy_obj || !x_var_full) return;
+  dialog_bar <- rk.XML.dialog(label = "Survey Bar Chart (questionr)", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = bar_data_tab, "Options" = bar_opts_tab, "Value Labels" = value_labels_tab, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
-    var x_var = getColumnName(x_var_full);
-    var fill_var = getColumnName(fill_var_full);
-    var facet_var = getColumnName(facet_var_full);
-
-    var omit_na = (getValue("omit_na") === "1");
-    var processed_svy_obj = svy_obj;
-
-    if (omit_na) {
-        var na_conditions = [];
-        if(x_var) na_conditions.push("!is.na(" + x_var + ")");
-        if(fill_var) na_conditions.push("!is.na(" + fill_var + ")");
-        if(facet_var) na_conditions.push("!is.na(" + facet_var + ")");
-
-        if(na_conditions.length > 0){
-            echo("svy_obj_no_na <- subset(" + svy_obj + ", " + na_conditions.join(" & ") + ")\\n");
-            processed_svy_obj = "svy_obj_no_na";
+  js_bar_calc <- paste(js_helpers, '
+    var svy = getValue("svy_object"); var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
+    var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
+    var processed_svy = svy;
+    if (getValue("omit_na") == "1") {
+        var conds = [];
+        if(x) conds.push("!is.na(" + x + ")");
+        if(fill) conds.push("!is.na(" + fill + ")");
+        if(facet) conds.push("!is.na(" + facet + ")");
+        if(conds.length > 0) {
+            echo("svy_clean <- subset(" + svy + ", " + conds.join(" & ") + ")\\n");
+            processed_svy = "svy_clean";
         }
     }
+    var freq = getValue("freq_type"); var pos = getValue("bar_pos"); var ord = getValue("order_x_freq");
+    var inv = getValue("invert_order"); var ord_lvl = getValue("order_by_level_input");
+    var pal = getValue("palette_input"); var flip = getValue("coord_flip");
 
-    var freq_type = getValue("freq_type");
-    var bar_pos = getValue("bar_pos");
-    var order_x = (getValue("order_x_freq") === "1");
-    var order_level = getValue("order_by_level_input");
-    var invert_order = (getValue("invert_order") === "1");
-    var coord_flip = (getValue("coord_flip") === "1");
-    var palette = getValue("palette_input");
-    var show_labels = (getValue("show_value_labels") === "1");
-
-    var x_var_for_plot = x_var;
-
-    if (freq_type === "rel") {
-        var svytable_vars = "~" + x_var;
-        if (fill_var) svytable_vars += " + " + fill_var;
-        if (facet_var) svytable_vars += " + " + facet_var;
-
-        echo("data_for_plot <- " + processed_svy_obj + " %>%\\n");
-        echo("  survey::svytable(" + svytable_vars + ", design = .) %>%\\n");
-        echo("  data.frame() %>%\\n");
-
-        var group_by_vars = [x_var];
-        if (facet_var) group_by_vars.push(facet_var);
-        echo("  dplyr::group_by(" + group_by_vars.join(", ") + ") %>%\\n");
-        echo("  dplyr::mutate(Prop = Freq / sum(Freq, na.rm=TRUE)) %>%\\n");
-        echo("  dplyr::ungroup()\\n");
-
-        if (order_x) {
-            var ordering_group_vars = [x_var];
-            if (facet_var) ordering_group_vars.push(facet_var);
-
-            echo("data_for_plot <- data_for_plot %>%\\n");
-            echo("  dplyr::group_by(" + ordering_group_vars.join(", ") + ") %>%\\n");
-
-            if (fill_var && order_level) {
-                echo("  dplyr::mutate(ordering_value = max(Prop[" + fill_var + " == \\"" + order_level + "\\"], 0, na.rm=TRUE)) %>%\\n");
+    if(freq == "rel") {
+        echo("plot_data <- " + processed_svy + " %>% survey::svytable(~" + x + (fill ? "+"+fill : "") + (facet ? "+"+facet : "") + ", design=.) %>% as.data.frame()\\n");
+        echo("plot_data <- plot_data %>% group_by(" + x + (facet ? ","+facet : "") + ") %>% mutate(Prop = Freq/sum(Freq)) %>% ungroup()\\n");
+        if(ord == "1") {
+            var ord_metric = "Freq";
+            if(fill && ord_lvl) {
+                echo("plot_data <- plot_data %>% group_by(" + x + ") %>% mutate(ord_val = sum(Prop[" + fill + "==\\"" + ord_lvl + "\\"])) %>% ungroup()\\n");
+                ord_metric = "ord_val";
             } else {
-                echo("  dplyr::mutate(ordering_value = sum(Freq, na.rm=TRUE)) %>%\\n");
+                 echo("plot_data <- plot_data %>% group_by(" + x + ") %>% mutate(ord_val = sum(Freq)) %>% ungroup()\\n");
+                 ord_metric = "ord_val";
             }
-            echo("  dplyr::ungroup()\\n");
-
-            var base_order_call = "forcats::fct_reorder(" + x_var + ", ordering_value, .desc=TRUE)";
-            x_var_for_plot = invert_order ? "forcats::fct_rev(" + base_order_call + ")" : base_order_call;
+            var fct = "fct_reorder(" + x + ", " + ord_metric + ", .desc=TRUE)";
+            if(inv == "1") fct = "fct_rev(" + fct + ")";
+            echo("plot_data$" + x + " <- " + fct + "\\n");
         }
-
-        if(show_labels && fill_var){
-            var arrange_vars = [x_var_for_plot, "dplyr::desc(" + fill_var + ")"];
-            if(facet_var) arrange_vars.unshift(facet_var);
-            echo("data_for_plot <- data_for_plot %>%\\n");
-            echo("  dplyr::arrange(" + arrange_vars.join(",") + ") %>%\\n");
-            echo("  dplyr::group_by(" + group_by_vars.join(", ") + ") %>%\\n");
-            echo("  dplyr::mutate(label_y_pos = cumsum(Prop) - 0.5 * Prop) %>%\\n");
-            echo("  dplyr::ungroup()\\n");
-        }
-
-        echo("p <- ggplot2::ggplot(data_for_plot, ggplot2::aes(x = " + x_var_for_plot + "))");
-        if (fill_var) {
-            echo(" + ggplot2::aes(fill = " + fill_var + ")");
-        }
-        echo(" +\\n  ggplot2::geom_col(aes(y = Prop))");
-        echo(" +\\n  ggplot2::scale_y_continuous(labels = scales::percent)");
-
-    } else { // Absolute Frequency
-        var pre_ggsurvey_pipe = "";
-        x_var_for_plot = x_var;
-
-        if (order_x) {
-            pre_ggsurvey_pipe += "  {\\n";
-            if (fill_var && order_level && !facet_var) {
-                pre_ggsurvey_pipe += "    ordering_df <- survey::svytable(~" + x_var + " + " + fill_var + ", design = .)\\n";
-                pre_ggsurvey_pipe += "    ordering_df <- as.data.frame(ordering_df)\\n";
-                pre_ggsurvey_pipe += "    ordered_levels <- ordering_df %>%\\n";
-                pre_ggsurvey_pipe += "      dplyr::filter(" + fill_var + " == \\"" + order_level + "\\") %>%\\n";
-                pre_ggsurvey_pipe += "      dplyr::arrange(dplyr::desc(Freq)) %>%\\n";
-                pre_ggsurvey_pipe += "      dplyr::pull(" + x_var + ")\\n";
-            } else {
-                pre_ggsurvey_pipe += "    ordering_df <- survey::svytable(~" + x_var + ", design = .)\\n";
-                pre_ggsurvey_pipe += "    ordering_df <- as.data.frame(ordering_df)\\n";
-                pre_ggsurvey_pipe += "    ordered_levels <- ordering_df %>%\\n";
-                pre_ggsurvey_pipe += "      dplyr::arrange(dplyr::desc(Freq)) %>%\\n";
-                pre_ggsurvey_pipe += "      dplyr::pull(" + x_var + ")\\n";
-            }
-            var r_invert_order = invert_order ? "TRUE" : "FALSE";
-            pre_ggsurvey_pipe += "    if(" + r_invert_order + ") { ordered_levels <- rev(ordered_levels) }\\n";
-            pre_ggsurvey_pipe += "    .$variables$" + x_var + " <- factor(as.character(.$variables$" + x_var + "), levels = ordered_levels)\\n";
-            pre_ggsurvey_pipe += "    . \\n";
-            pre_ggsurvey_pipe += "  } %>%\\n";
-        }
-
-        echo("p <- " + processed_svy_obj + " %>%\\n");
-        if(pre_ggsurvey_pipe){
-          echo(pre_ggsurvey_pipe);
-        }
-        echo("  questionr::ggsurvey() +\\n");
-
-        var aes_map = ["x = " + x_var_for_plot];
-        if (fill_var) {
-            aes_map.push("fill = " + fill_var);
-        }
-        echo("  ggplot2::aes(" + aes_map.join(", ") + ") +\\n");
-        echo("  ggplot2::geom_bar(position = \\"" + bar_pos + "\\")");
-    }
-
-    if(show_labels){
-      var label_style = getValue("label_style");
-      var label_size = getValue("label_size");
-      var label_decimals = getValue("label_decimals");
-      var accuracy = 1 / Math.pow(10, parseInt(label_decimals));
-
-      var preset_color = getValue("label_color_preset");
-      var final_color = preset_color;
-      if(preset_color === "custom"){
-          final_color = getValue("label_color_custom");
-      }
-
-      var label_geom;
-      var is_stacked = (freq_type !== "rel" && (bar_pos === "stack" || bar_pos === "fill"));
-
-      if (label_style === "label_repel" && is_stacked) {
-          // Fallback for the incompatible combination
-          label_geom = "ggplot2::geom_label";
-      } else if (label_style === "label_repel") {
-          label_geom = "ggrepel::geom_label_repel";
-      } else if (label_style === "text_repel") {
-          label_geom = "ggrepel::geom_text_repel";
-      } else if (label_style === "label") {
-          label_geom = "ggplot2::geom_label";
-      } else {
-          label_geom = "ggplot2::geom_text";
-      }
-
-      var other_opts = [];
-      if(label_geom.indexOf("label") > -1){ other_opts.push("fill=\\"white\\""); }
-      if(label_geom.indexOf("repel") > -1){ other_opts.push("max.overlaps = " + getValue("label_max_overlaps")); }
-
-      var label_aes;
-      if (freq_type === "rel") {
-          label_aes = "label = scales::percent(Prop, accuracy = " + accuracy + ")";
-          var y_pos_aes = fill_var ? "y = label_y_pos" : "y = Prop";
-          var vjust = fill_var ? "" : ", vjust = -0.5";
-          var other_opts_str = other_opts.length > 0 ? ", " + other_opts.join(", ") : "";
-          echo(" +\\n  " + label_geom + "(aes(" + y_pos_aes + ", " + label_aes + ")" + vjust + ", size=" + label_size + ", color=\\"" + final_color + "\\"" + other_opts_str + ")");
-      } else { // Absolute
-          var geom_opts = "";
-          var stat_call = "stat=\\"count\\"";
-
-          label_aes = "label = ..count..";
-          if(bar_pos === "dodge") {
-              geom_opts = "position = ggplot2::position_dodge(width = 0.9), vjust = -0.5";
-          } else if (bar_pos === "fill") {
-              label_aes = "label = scales::percent(..prop.., accuracy=" + accuracy + ")";
-              geom_opts = "position = ggplot2::position_fill(vjust = 0.5)";
-          } else { // stack
-              geom_opts = "position = ggplot2::position_stack(vjust = 0.5)";
-          }
-          var other_opts_str = other_opts.length > 0 ? ", " + other_opts.join(", ") : "";
-          echo(" +\\n  " + label_geom + "(aes(" + label_aes + "), " + stat_call + ", " + geom_opts + ", size=" + label_size + ", color=\\"" + final_color + "\\"" + other_opts_str + ")");
-      }
-    }
-
-    echo("\\n");
-    if (coord_flip) {
-        echo("p <- p + ggplot2::coord_flip()\\n");
-    }
-
-    if (fill_var) {
-        var legend_wrap_width = getValue("legend_wrap_width");
-        var scale_fill_opts = "palette = \\"" + palette + "\\"";
-        if (legend_wrap_width && parseInt(legend_wrap_width) > 0) {
-            scale_fill_opts += ", labels = scales::label_wrap(" + legend_wrap_width + ")";
-        }
-        echo("p <- p + ggplot2::scale_fill_brewer(" + scale_fill_opts + ")\\n");
-    }
-
-    if (facet_var) {
-        var facet_layout = getValue("facet_layout");
-        var facet_opts = "";
-        if (facet_layout === "row") {
-            facet_opts = ", nrow = 1";
-        } else if (facet_layout === "col") {
-            facet_opts = ", ncol = 1";
-        }
-        echo("p <- p + ggplot2::facet_wrap(~ " + facet_var + facet_opts + ")\\n");
-    }
-
-    var labs_list = [];
-    var custom_xlab = getValue("plot_xlab");
-    var xlab_wrap = getValue("plot_xlab_wrap");
-    var xlab_call;
-    if (custom_xlab) {
-        xlab_call = "\\"" + custom_xlab + "\\"";
+        echo("p <- ggplot(plot_data, aes(x=" + x + ", y=Prop" + (fill ? ", fill="+fill : "") + ")) + geom_col(position=\\"" + pos + "\\") + scale_y_continuous(labels=scales::percent)\\n");
     } else {
-        xlab_call = "rk.get.label(" + x_var_full + ")";
-    }
-    if (xlab_wrap && parseInt(xlab_wrap) > 0) {
-        xlab_call = "scales::label_wrap(" + xlab_wrap + ")(" + xlab_call + ")";
-    }
-    labs_list.push("x = " + xlab_call);
-
-    var custom_ylab = getValue("plot_ylab");
-    var ylab_wrap = getValue("plot_ylab_wrap");
-    if (custom_ylab) {
-        var ylab_call = "\\"" + custom_ylab + "\\"";
-        if (ylab_wrap && parseInt(ylab_wrap) > 0) {
-            ylab_call = "scales::label_wrap(" + ylab_wrap + ")(" + ylab_call + ")";
+        if(ord == "1") {
+             echo("tmp_counts <- svytable(~" + x + ", " + processed_svy + ")\\n");
+             echo("lvls <- names(sort(tmp_counts, decreasing=" + (inv=="1"?"FALSE":"TRUE") + "))\\n");
+             echo(processed_svy + "$variables[[" + "\\"" + x + "\\"]] <- factor(" + processed_svy + "$variables[[" + "\\"" + x + "\\"]], levels=lvls)\\n");
         }
-        labs_list.push("y = " + ylab_call);
+        echo("p <- questionr::ggsurvey(" + processed_svy + ") + geom_bar(aes(x=" + x + ", weight=.weights" + (fill ? ", fill="+fill : "") + "), position=\\"" + pos + "\\")\\n");
     }
-
-    if (fill_var) {
-        var custom_legend_title = getValue("plot_legend_title");
-        var legend_title_wrap_width = getValue("legend_title_wrap_width");
-        var legend_title_call;
-        if (custom_legend_title) {
-            legend_title_call = "\\"" + custom_legend_title + "\\"";
-        } else {
-            legend_title_call = "rk.get.label(" + fill_var_full + ")";
-        }
-        if (legend_title_wrap_width && parseInt(legend_title_wrap_width) > 0) {
-            legend_title_call = "scales::label_wrap(" + legend_title_wrap_width + ")(" + legend_title_call + ")";
-        }
-        labs_list.push("fill = " + legend_title_call);
+    if(fill) {
+        var legw = getValue("legend_wrap_width");
+        var pal_opts = "palette=\\"" + pal + "\\"";
+        if(legw > 0) pal_opts += ", labels=scales::label_wrap(" + legw + ")";
+        echo("p <- p + scale_fill_brewer(" + pal_opts + ")\\n");
     }
-
-    if (getValue("plot_title")) { labs_list.push("title = \\"" + getValue("plot_title") + "\\""); }
-    if (getValue("plot_subtitle")) { labs_list.push("subtitle = \\"" + getValue("plot_subtitle") + "\\""); }
-    if (getValue("plot_caption")) { labs_list.push("caption = \\"" + getValue("plot_caption") + "\\""); }
-    if (labs_list.length > 0) {
-      echo("p <- p + ggplot2::labs(" + labs_list.join(", ") + ")\\n");
+    if(flip == "1") echo("p <- p + coord_flip()\\n");
+    if(facet) {
+        var lay = getValue("facet_layout");
+        var lay_opt = "";
+        if(lay == "row") lay_opt = ", nrow=1";
+        if(lay == "col") lay_opt = ", ncol=1";
+        echo("p <- p + facet_wrap(~" + facet + lay_opt + ")\\n");
     }
-
-    var x_val_wrap = getValue("theme_x_val_wrap");
-    if (x_val_wrap && parseInt(x_val_wrap) > 0) {
-        echo("p <- p + ggplot2::scale_x_discrete(labels = scales::label_wrap(" + x_val_wrap + "))\\n");
+    if(getValue("show_value_labels") == "1") {
+       var style = getValue("label_style");
+       var col_pre = getValue("label_color_preset");
+       var col = (col_pre == "custom") ? getValue("label_color_custom") : col_pre;
+       var size = getValue("label_size");
+       var dec = getValue("label_decimals");
+       var geom = "geom_text";
+       if(style.includes("label")) geom = "geom_label";
+       if(style.includes("repel")) geom = "ggrepel::geom_" + style;
+       var aes_lbl = (freq == "rel") ? "scales::percent(Prop, accuracy=0." + "0".repeat(dec) + "1)" : "scales::number(..count.., accuracy=1)";
+       if(pos == "fill") aes_lbl = "scales::percent(..prop.., accuracy=0." + "0".repeat(dec) + "1)";
+       var opts = ", color=\\"" + col + "\\", size=" + size;
+       if(style.includes("repel")) opts += ", max.overlaps=" + getValue("label_max_overlaps");
+       if(style.includes("label")) opts += ", fill=\\"white\\"";
+       var pos_func = "position_stack(vjust=0.5)";
+       if(pos == "dodge") pos_func = "position_dodge(width=0.9)";
+       if(pos == "fill") pos_func = "position_fill(vjust=0.5)";
+       if(freq == "rel") {
+           echo("p <- p + " + geom + "(aes(label=" + aes_lbl + "), position=" + pos_func + opts + ")\\n");
+       } else {
+           echo("p <- p + " + geom + "(aes(label=" + aes_lbl + ", weight=.weights), stat=\\"count\\", position=" + pos_func + opts + ")\\n");
+       }
     }
-    var y_val_wrap = getValue("theme_y_val_wrap");
-    if (y_val_wrap && parseInt(y_val_wrap) > 0) {
-        echo("p <- p + ggplot2::scale_y_discrete(labels = scales::label_wrap(" + y_val_wrap + "))\\n");
-    }
-
-    var theme_list = [];
-    if(getValue("theme_text_rel") != 1) { theme_list.push("text = ggplot2::element_text(size = ggplot2::rel(" + getValue("theme_text_rel") + "))"); }
-    if(getValue("theme_title_rel") != 1.2) { theme_list.push("plot.title = ggplot2::element_text(size = ggplot2::rel(" + getValue("theme_title_rel") + "))"); }
-    if(getValue("theme_legend_rel") != 0.8) { theme_list.push("legend.text = ggplot2::element_text(size = ggplot2::rel(" + getValue("theme_legend_rel") + "))"); }
-    if(getValue("theme_legend_pos") != "right") { theme_list.push("legend.position = \\"" + getValue("theme_legend_pos") + "\\""); }
-
-    var x_angle = getValue("theme_x_angle");
-    var x_hjust = getValue("theme_x_hjust");
-    var x_vjust = getValue("theme_x_vjust");
-    if(x_angle != 0 || x_hjust != 0.5 || x_vjust != 0.5) {
-        theme_list.push("axis.text.x = ggplot2::element_text(angle=" + x_angle + ", hjust=" + x_hjust + ", vjust=" + x_vjust + ")");
-    }
-
-    if(theme_list.length > 0) {
-      echo("p <- p + ggplot2::theme(" + theme_list.join(", ") + ")\\n");
-    }
-  ')
+    ', js_apply_theme
+  )
 
   # =========================================================================================
-  # Final Plugin Skeleton Call
+  # --- COMPONENT 2: Survey Histogram (questionr) ---
+  # =========================================================================================
+  help_hist <- rk.rkh.doc(
+    title = rk.rkh.title("Survey Histogram (questionr)"),
+    summary = rk.rkh.summary("Create a weighted histogram for numeric variables from a survey design."),
+    usage = rk.rkh.usage("Select a survey design object and a numeric variable.")
+  )
+  hist_svy <- rk.XML.varslot(label = "Survey Design", source = "svy_selector", required = TRUE, id.name = "svy_object", classes = c("survey.design", "svyrep.design"))
+  hist_x <- rk.XML.varslot(label = "Numeric Variable", source = "svy_selector", required = TRUE, id.name = "x_var", classes = c("numeric", "integer"))
+  hist_facet <- rk.XML.varslot(label = "Facet Variable", source = "svy_selector", id.name = "facet_var", classes = c("factor", "character"))
+  hist_opts <- rk.XML.col(rk.XML.spinbox(label = "Bins", id.name = "bins", min = 1, max = 100, initial = 30), rk.XML.input(label = "Fill", id.name = "fill_col", initial = "steelblue"), rk.XML.cbox(label = "Density Curve", id.name = "show_dens", value = "1"))
+  dialog_hist <- rk.XML.dialog(label = "Survey Histogram (questionr)", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(hist_svy, hist_x, hist_facet), "Options" = hist_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
+  js_hist_calc <- paste(js_helpers, '
+    var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
+    var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
+    echo("p <- questionr::ggsurvey(" + svy + ") + \\n");
+    if(dens == "1") {
+       echo("  ggplot2::geom_histogram(aes(x=" + x + ", weight=.weights, y=..density..), bins=" + bins + ", fill=\\"" + fill + "\\", color=\\"white\\") + \\n");
+       echo("  ggplot2::geom_density(aes(x=" + x + ", weight=.weights), alpha=0.3, fill=\\"grey50\\")\\n");
+    } else {
+       echo("  ggplot2::geom_histogram(aes(x=" + x + ", weight=.weights), bins=" + bins + ", fill=\\"" + fill + "\\", color=\\"white\\")\\n");
+    }
+    if(facet) echo("p <- p + ggplot2::facet_wrap(~" + facet + ")\\n");
+    ', js_apply_theme
+  )
+  comp_hist <- rk.plugin.component("Histogram (questionr)", xml=list(dialog=dialog_hist), js=list(require=c("questionr", "ggplot2"), calculate=js_hist_calc, printout=js_printout_shared), hierarchy=list("Survey", "Graphs", "ggGraphs"), rkh=list(help=help_hist))
+
+  # =========================================================================================
+  # --- COMPONENT 3: Survey Boxplot (questionr) ---
+  # =========================================================================================
+  help_box <- rk.rkh.doc(
+    title = rk.rkh.title("Survey Boxplot (questionr)"),
+    summary = rk.rkh.summary("Create weighted boxplots to compare numeric distributions across groups."),
+    usage = rk.rkh.usage("Select a survey design object, a numeric variable (Y), and a grouping variable (X).")
+  )
+  box_svy <- rk.XML.varslot(label = "Survey Design", source = "svy_selector", required = TRUE, id.name = "svy_object", classes = c("survey.design", "svyrep.design"))
+  box_y <- rk.XML.varslot(label = "Numeric Variable (Y)", source = "svy_selector", required = TRUE, id.name = "y_var", classes = c("numeric", "integer"))
+  box_x <- rk.XML.varslot(label = "Grouping Variable (X)", source = "svy_selector", id.name = "x_var", classes = c("factor", "character"))
+  box_opts <- rk.XML.col(rk.XML.cbox(label = "Fill by Group", id.name = "fill_by_group", value = "1", chk = TRUE), color_palette_dropdown, rk.XML.cbox(label = "Flip Coordinates", id.name = "coord_flip", value = "1"))
+  dialog_box <- rk.XML.dialog(label = "Survey Boxplot (questionr)", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(box_svy, box_y, box_x), "Options" = box_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
+  js_box_calc <- paste(js_helpers, '
+    var svy = getValue("svy_object"); var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
+    var fill_grp = getValue("fill_by_group"); var pal = getValue("palette_input");
+    echo("p <- questionr::ggsurvey(" + svy + ") + \\n");
+    var x_aes = (x == "") ? "factor(1)" : x;
+    var fill_aes = (fill_grp == "1" && x != "") ? ", fill=" + x : "";
+    echo("  ggplot2::geom_boxplot(aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + "))\\n");
+    if(fill_grp == "1" && x != "") echo("p <- p + ggplot2::scale_fill_brewer(palette=\\"" + pal + "\\")\\n");
+    if(getValue("coord_flip") == "1") echo("p <- p + ggplot2::coord_flip()\\n");
+    if(x == "") echo("p <- p + ggplot2::theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(x=NULL)\\n");
+    ', js_apply_theme
+  )
+  comp_box <- rk.plugin.component("Boxplot (questionr)", xml=list(dialog=dialog_box), js=list(require=c("questionr", "ggplot2"), calculate=js_box_calc, printout=js_printout_shared), hierarchy=list("Survey", "Graphs", "ggGraphs"), rkh=list(help=help_box))
+
+  # =========================================================================================
+  # --- COMPONENT 4: Survey Frequency Table (questionr) ---
+  # =========================================================================================
+  help_freq <- rk.rkh.doc(
+    title = rk.rkh.title("Survey Frequency Table (questionr)"),
+    summary = rk.rkh.summary("Generate a weighted frequency table with percentages."),
+    usage = rk.rkh.usage("Select a survey design object and a categorical variable.")
+  )
+  freq_svy <- rk.XML.varslot(label = "Survey Design", source = "svy_selector", required = TRUE, id.name = "svy_object", classes = c("survey.design", "svyrep.design"))
+  freq_var <- rk.XML.varslot(label = "Variable", source = "svy_selector", required = TRUE, id.name = "x_var")
+  freq_opts <- rk.XML.col(rk.XML.cbox(label = "Show Cumulative %", id.name = "cumul", value = "1", chk = TRUE), rk.XML.cbox(label = "Show Total Row", id.name = "total", value = "1", chk = TRUE), rk.XML.dropdown(label = "Sort", id.name = "sort", options = list("Decreasing (Freq)" = list(val = "dec", chk=TRUE), "Increasing (Freq)" = list(val = "inc"), "None (Levels)" = list(val = "none"))), rk.XML.cbox(label = "Exclude NAs from calculation", id.name = "na_exclude", value = "1", chk = TRUE))
+  dialog_freq <- rk.XML.dialog(label = "Survey Frequency Table (questionr)", child = rk.XML.row(svy_selector, rk.XML.col(freq_svy, freq_var, freq_opts)))
+  js_freq_calc <- paste(js_helpers, '
+      var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var"));
+      var cumul = (getValue("cumul") == "1") ? "TRUE" : "FALSE";
+      var total = (getValue("total") == "1") ? "TRUE" : "FALSE";
+      var sort = getValue("sort");
+      var na_ex = (getValue("na_exclude") == "1") ? "NA" : "NULL";
+      echo("var_vec <- " + svy + "$variables[[" + "\\"" + x + "\\"]]\\n");
+      echo("wt_vec <- weights(" + svy + ")\\n");
+      echo("freq_tab <- questionr::freq(var_vec, w = wt_vec, cumul = " + cumul + ", total = " + total + ", sort = \\"" + sort + "\\", exclude = " + na_ex + ")\\n");
+  ')
+  js_freq_print <- paste(js_helpers, '
+      var x = getColumnName(getValue("x_var"));
+      echo("rk.header(\\"Weighted Frequency Table: " + x + " (questionr)\\")\\n");
+      echo("rk.results(freq_tab)\\n");
+  ')
+  comp_freq <- rk.plugin.component("Frequency Table (questionr)", xml=list(dialog=dialog_freq), js=list(require="questionr", calculate=js_freq_calc, printout=js_freq_print), hierarchy=list("Survey", "Descriptive"), rkh=list(help=help_freq))
+
+  # =========================================================================================
+  # Final SKELETON (Fixing Duplicate Declaration)
   # =========================================================================================
   rk.plugin.skeleton(
     about = package_about,
     path = ".",
-    xml = list(
-      dialog = main_dialog
-    ),
-    js = list(
-      require = c("questionr", "srvyr", "survey", "ggplot2", "dplyr", "forcats", "stringr", "scales", "RColorBrewer", "ggrepel"),
-      calculate = js_calculate,
-      printout = js_printout
-    ),
-    pluginmap = list(
-      name = "Bar Chart (questionr)",
-      hierarchy = list("Survey", "Graphs", "ggGraphs")
-    ),
-    create = c("pmap", "xml", "js", "desc"),
-    load = TRUE,
-    overwrite = TRUE,
-    show = TRUE
-  )
+    # Define Main Component (Bar Chart) here as ENTRY POINT
+    xml = list(dialog = dialog_bar),
+    js = list(calculate = js_bar_calc, printout = js_printout_shared),
+    rkh = list(help = help_bar),
 
+    # Define SUB-COMPONENTS here
+    components = list(
+        # comp_bar, # <-- REMOVED to prevent duplicate declaration
+        comp_hist,
+        comp_box,
+        comp_freq
+    ),
+
+    # Map the Main Component to the Menu
+    pluginmap = list(
+        name = "Bar Chart (questionr)",
+        hierarchy = list("Survey", "Graphs", "ggGraphs")
+    ),
+
+    create = c("pmap", "xml", "js", "desc", "rkh"),
+    load = TRUE, overwrite = TRUE, show = FALSE
+  )
 })

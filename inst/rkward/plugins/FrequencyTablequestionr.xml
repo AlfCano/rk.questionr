@@ -1,0 +1,40 @@
+<!DOCTYPE rkplugin >
+<document>
+	<!--
+		this code was generated using the rkwarddev package.
+	perhaps don't make changes here, but in the rkwarddev script instead!
+	-->
+	<code file="FrequencyTablequestionr.js" />
+	<help file="FrequencyTablequestionr.rkh" />
+	<!--
+		<dependencies>
+		</dependencies>
+	-->
+	<logic>
+		<!--
+			<convert id="!edit!" sources="!edit!" mode="equals" standard="!edit!" />
+		-->
+		<!--
+			<connect governor="!edit!.state" client="!edit!.enabled" />
+		-->
+	</logic>
+	<dialog label="Survey Frequency Table (questionr)">
+		<row id="row_vSSDVSC1ST">
+			<varselector id="svy_selector" label="Select survey object" />
+			<column id="clm_vSDVSC1STR">
+				<varslot id="svy_object" label="Survey Design" source="svy_selector" classes="survey.design svyrep.design" required="true" />
+				<varslot id="x_var" label="Variable" source="svy_selector" required="true" />
+				<column id="clm_cSC1STR1SD">
+					<checkbox id="cumul" label="Show Cumulative %" value="1" checked="true" />
+					<checkbox id="total" label="Show Total Row" value="1" checked="true" />
+					<dropdown id="sort" label="Sort">
+						<option label="Decreasing (Freq)" value="dec" checked="true" />
+						<option label="Increasing (Freq)" value="inc" />
+						<option label="None (Levels)" value="none" />
+					</dropdown>
+					<checkbox id="na_exclude" label="Exclude NAs from calculation" value="1" checked="true" />
+				</column>
+			</column>
+		</row>
+	</dialog>
+</document>

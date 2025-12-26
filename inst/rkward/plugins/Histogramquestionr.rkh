@@ -5,7 +5,7 @@
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
 	<title>
-		Bar Chart (questionr)
+		Histogram (questionr)
 	</title>
 	<summary>
 	</summary>
@@ -22,44 +22,14 @@
 		</setting>
 		<setting id="x_var">
 		</setting>
-		<setting id="fill_var">
-		</setting>
 		<setting id="facet_var">
 		</setting>
-		<setting id="omit_na">
-		</setting>
 		<caption id="tab_Options" />
-		<setting id="freq_type">
+		<setting id="bins">
 		</setting>
-		<setting id="bar_pos">
+		<setting id="fill_col">
 		</setting>
-		<caption id="frm_XxsOrdrn" />
-		<setting id="order_x_freq">
-		</setting>
-		<setting id="invert_order">
-		</setting>
-		<setting id="order_by_level_input">
-		</setting>
-		<setting id="coord_flip">
-		</setting>
-		<setting id="facet_layout">
-		</setting>
-		<setting id="palette_input">
-		</setting>
-		<caption id="tab_ValuLbls" />
-		<setting id="show_value_labels">
-		</setting>
-		<setting id="label_style">
-		</setting>
-		<setting id="label_color_preset">
-		</setting>
-		<setting id="label_color_custom">
-		</setting>
-		<setting id="label_size">
-		</setting>
-		<setting id="label_decimals">
-		</setting>
-		<setting id="label_max_overlaps">
+		<setting id="show_dens">
 		</setting>
 		<caption id="tab_Labels" />
 		<setting id="plot_title">

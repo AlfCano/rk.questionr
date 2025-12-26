@@ -1,0 +1,97 @@
+<!DOCTYPE rkplugin >
+<document>
+	<!--
+		this code was generated using the rkwarddev package.
+	perhaps don't make changes here, but in the rkwarddev script instead!
+	-->
+	<code file="Histogramquestionr.js" />
+	<help file="Histogramquestionr.rkh" />
+	<!--
+		<dependencies>
+		</dependencies>
+	-->
+	<logic>
+		<!--
+			<convert id="!edit!" sources="!edit!" mode="equals" standard="!edit!" />
+		-->
+		<!--
+			<connect governor="!edit!.state" client="!edit!.enabled" />
+		-->
+	</logic>
+	<dialog label="Survey Histogram (questionr)">
+		<row id="row_vSDDSDNVFV">
+			<varselector id="svy_selector" label="Select survey object" />
+			<column id="clm_tDDSDNVFVS">
+				<tabbook>
+					<tab label="Data" id="tab_Data">
+						<column id="clm_vrslSDNVFV">
+							<varslot id="svy_object" label="Survey Design" source="svy_selector" classes="survey.design svyrep.design" required="true" />
+							<varslot id="x_var" label="Numeric Variable" source="svy_selector" classes="numeric integer" required="true" />
+							<varslot id="facet_var" label="Facet Variable" source="svy_selector" classes="factor character" />
+						</column>
+					</tab>
+					<tab label="Options" id="tab_Options">
+						<column id="clm_sB301100FD">
+							<spinbox label="Bins" id="bins" initial="30" min="1" max="100" />
+							<input label="Fill" id="fill_col" initial="steelblue" />
+							<checkbox id="show_dens" label="Density Curve" value="1" />
+						</column>
+					</tab>
+					<tab label="Labels" id="tab_Labels">
+						<column id="clm_iPTPSXLWXL">
+							<input label="Plot Title" id="plot_title" />
+							<input label="Plot Subtitle" id="plot_subtitle" />
+							<input label="X-axis Label (blank for auto)" id="plot_xlab" />
+							<spinbox label="Wrap X-axis Label at (chars)" id="plot_xlab_wrap" min="0" max="100" />
+							<input label="Y-axis Label" id="plot_ylab" />
+							<spinbox label="Wrap Y-axis Label at (chars)" id="plot_ylab_wrap" min="0" max="100" />
+							<input label="Legend Title (blank for auto)" id="plot_legend_title" />
+							<spinbox label="Wrap Legend Title at (chars)" id="legend_title_wrap_width" initial="20" min="0" max="100" />
+							<spinbox label="Wrap Legend Labels at (chars)" id="legend_wrap_width" initial="20" min="0" max="100" />
+							<input label="Plot Caption" id="plot_caption" />
+						</column>
+					</tab>
+					<tab label="Theme" id="tab_Theme">
+						<column id="clm_sO1015LPRL">
+							<spinbox label="Overall text size" id="theme_text_rel" initial="1" min="0.1" max="5" />
+							<dropdown id="theme_legend_pos" label="Legend Position">
+								<option label="Right" value="right" checked="true" />
+								<option label="Left" value="left" />
+								<option label="Top" value="top" />
+								<option label="Bottom" value="bottom" />
+								<option label="None" value="none" />
+							</dropdown>
+							<frame label="X-Axis Text" id="frm_XAxisTxt">
+								<row id="row_sA090HJ050">
+									<spinbox label="Angle" id="theme_x_angle" min="0" max="90" />
+									<spinbox label="H-Just" id="theme_x_hjust" initial="0.5" min="0" max="1" />
+									<spinbox label="Value Labels Wrap (chars)" id="theme_x_val_wrap" min="0" max="100" />
+								</row>
+							</frame>
+							<frame label="Y-Axis Text" id="frm_YAxisTxt">
+								<row id="row_spnVLW0100">
+									<spinbox label="Value Labels Wrap (chars)" id="theme_y_val_wrap" min="0" max="100" />
+								</row>
+							</frame>
+						</column>
+					</tab>
+					<tab label="Output" id="tab_Output">
+						<column id="clm_dDPNGPNGSV">
+							<dropdown id="device_type" label="Device type">
+								<option label="PNG" value="PNG" checked="true" />
+								<option label="SVG" value="SVG" />
+							</dropdown>
+							<spinbox label="Width (px)" id="dev_width" initial="1024" min="100" max="4000" />
+							<spinbox label="Height (px)" id="dev_height" initial="724" min="100" max="4000" />
+							<dropdown id="dev_bg" label="Background">
+								<option label="Transparent" value="transparent" checked="true" />
+								<option label="White" value="white" />
+							</dropdown>
+						</column>
+					</tab>
+				</tabbook>
+				<preview label="Preview" id="plot_preview" />
+			</column>
+		</row>
+	</dialog>
+</document>

@@ -46,7 +46,7 @@ function calculate(is_preview){
     var freq = getValue("freq_type"); var pos = getValue("bar_pos"); var ord = getValue("order_x_freq");
     var inv = getValue("invert_order"); var ord_lvl = getValue("order_by_level_input");
     var pal = getValue("palette_input"); var flip = getValue("coord_flip");
-    
+
     if(freq == "rel") {
         echo("plot_data <- " + processed_svy + " %>% survey::svytable(~" + x + (fill ? "+"+fill : "") + (facet ? "+"+facet : "") + ", design=.) %>% as.data.frame()\n");
         echo("plot_data <- plot_data %>% group_by(" + x + (facet ? ","+facet : "") + ") %>% mutate(Prop = Freq/sum(Freq)) %>% ungroup()\n");
@@ -72,12 +72,18 @@ function calculate(is_preview){
         }
         echo("p <- questionr::ggsurvey(" + processed_svy + ") + geom_bar(aes(x=" + x + ", weight=.weights" + (fill ? ", fill="+fill : "") + "), position=\"" + pos + "\")\n");
     }
+
     if(fill) {
         var legw = getValue("legend_wrap_width");
-        var pal_opts = "palette=\"" + pal + "\"";
-        if(legw > 0) pal_opts += ", labels=scales::label_wrap(" + legw + ")";
-        echo("p <- p + scale_fill_brewer(" + pal_opts + ")\n");
+        var lab_opt = (legw > 0) ? ", labels=scales::label_wrap(" + legw + ")" : "";
+        echo("n_colors <- length(unique(na.omit(" + processed_svy + "$variables[[" + "\"" + fill + "\"]])))\n");
+        echo("if(n_colors > 8) {\n");
+        echo("  p <- p + scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(8, \"" + pal + "\"))(n_colors)" + lab_opt + ")\n");
+        echo("} else {\n");
+        echo("  p <- p + scale_fill_brewer(palette=\"" + pal + "\"" + lab_opt + ")\n");
+        echo("}\n");
     }
+
     if(flip == "1") echo("p <- p + coord_flip()\n");
     if(facet) {
         var lay = getValue("facet_layout");

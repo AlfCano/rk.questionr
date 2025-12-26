@@ -51,6 +51,13 @@
 								<option label="Spectral" value="Spectral" />
 							</dropdown>
 							<checkbox id="coord_flip" label="Flip Coordinates" value="1" />
+							<checkbox id="varwidth" label="Varwidth" value="1" />
+							<frame label="Ordering" id="frm_Ordering">
+								<column id="clm_chOXMY1IO1">
+									<checkbox id="order_median" label="Order X by Median Y" value="1" />
+									<checkbox id="invert_order" label="Invert Order" value="1" />
+								</column>
+							</frame>
 						</column>
 					</tab>
 					<tab label="Labels" id="tab_Labels">

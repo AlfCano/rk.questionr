@@ -1,6 +1,6 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.4.4-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.4.6-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
 
@@ -20,13 +20,14 @@ A highly customizable bar chart for categorical variables.
 
 ### 2. Survey Histogram (questionr)
 Visualize the distribution of numeric variables in survey designs.
-*   **Weighted Visualization**: correctly accounts for survey weights in bin heights.
+*   **Weighted Visualization**: Correctly accounts for survey weights in bin heights.
 *   **Density Curves**: Overlay a weighted density curve on top of the histogram.
 *   **Customization**: Control bin count, fill colors, and border colors.
 
 ### 3. Survey Boxplot (questionr)
 Compare distributions of numeric variables across groups.
 *   **Weighted Statistics**: The boxplots represent weighted quartiles and medians, not just raw data summaries.
+*   **Smart Ordering**: Automatically **sort groups by their weighted median** (ascending or descending) for clearer comparison.
 *   **Visual Options**: Toggle "Varwidth" (box width proportional to sample size), grouping colors, and coordinate flipping.
 
 ### 4. Survey Frequency Table (questionr)
@@ -34,6 +35,7 @@ Generate detailed tabular summaries for categorical variables.
 *   **Weighted Counts**: Calculates counts and percentages based on survey design weights.
 *   **Options**: Toggle Cumulative Percentages, Total Rows, and exclusion of NA values.
 *   **Sorting**: Sort by frequency (increasing/decreasing) or factor levels.
+*   **Save Object**: Save the resulting frequency table to the R workspace. This allows the object to be passed to other plugins (like **rk.flextable**) for formatting and export.
 
 ---
 
@@ -41,7 +43,7 @@ Generate detailed tabular summaries for categorical variables.
 All graphical plugins in this package share a consistent set of styling tools:
 *   **Theming**: Adjust relative text sizes, legend position, and axis text angles/justification.
 *   **Labels & Wrapping**: Automatic text wrapping for long titles, axis labels, and legend items.
-*   **Palettes**: Integrated **ColorBrewer** palette selector (Paired, Set1, Dark2, Spectral, etc.).
+*   **Palettes**: Integrated **ColorBrewer** palette selector (Paired, Set1, Dark2, Spectral, etc.) with automatic interpolation for variables with many categories.
 *   **Export**: High-resolution export options for PNG, SVG, and JPG with custom dimensions.
 
 ## Installation

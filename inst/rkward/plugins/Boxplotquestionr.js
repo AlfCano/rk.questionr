@@ -17,12 +17,20 @@ function preprocess(is_preview){
 		echo("if(!base::require(ggplot2)){stop(" + i18n("Preview not available, because package ggplot2 is not installed or cannot be loaded.") + ")}\n");
 	} else {
 		echo("require(ggplot2)\n");
+	}	if(is_preview) {
+		echo("if(!base::require(RColorBrewer)){stop(" + i18n("Preview not available, because package RColorBrewer is not installed or cannot be loaded.") + ")}\n");
+	} else {
+		echo("require(RColorBrewer)\n");
+	}	if(is_preview) {
+		echo("if(!base::require(survey)){stop(" + i18n("Preview not available, because package survey is not installed or cannot be loaded.") + ")}\n");
+	} else {
+		echo("require(survey)\n");
 	}
 }
 
 function calculate(is_preview){
 	// read in variables from dialog
-
+	var varwidth = getValue("varwidth");
 
 	// the R code to be evaluated
 
@@ -40,11 +48,36 @@ function calculate(is_preview){
    
     var svy = getValue("svy_object"); var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
     var fill_grp = getValue("fill_by_group"); var pal = getValue("palette_input");
-    echo("p <- questionr::ggsurvey(" + svy + ") + \n");
+    var processed_svy = svy;
+
+    echo("options(survey.lonely.psu=\"adjust\")\n");
+
+    var ord = getValue("order_median");
+    var inv = getValue("invert_order");
+
+    if (ord == "1" && x != "") {
+        echo("design_for_ord <- subset(" + processed_svy + ", is.finite(" + y + "))\n");
+        echo("med_df <- survey::svyby(formula = ~" + y + ", by = ~" + x + ", design = design_for_ord, FUN = survey::svyquantile, quantiles = 0.5, na.rm = TRUE, ci = FALSE, keep.var = FALSE)\n");
+        echo("ordered_levels <- as.character(med_df[order(med_df[[ncol(med_df)]]), 1])\n");
+        if (inv == "1") echo("ordered_levels <- rev(ordered_levels)\n");
+        echo(processed_svy + " <- update(" + processed_svy + ", " + x + " = factor(" + x + ", levels = ordered_levels))\n");
+    }
+
+    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \n");
     var x_aes = (x == "") ? "factor(1)" : x;
     var fill_aes = (fill_grp == "1" && x != "") ? ", fill=" + x : "";
-    echo("  ggplot2::geom_boxplot(aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + "))\n");
-    if(fill_grp == "1" && x != "") echo("p <- p + ggplot2::scale_fill_brewer(palette=\"" + pal + "\")\n");
+    var vw = (getValue("varwidth") == "1") ? "TRUE" : "FALSE";
+    echo("  ggplot2::geom_boxplot(aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + "), varwidth=" + vw + ")\n");
+
+    if(fill_grp == "1" && x != "") {
+        echo("n_colors <- length(unique(na.omit(" + svy + "$variables[[" + "\"" + x + "\"]])))\n");
+        echo("if(n_colors > 8) {\n");
+        echo("  p <- p + scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(8, \"" + pal + "\"))(n_colors))\n");
+        echo("} else {\n");
+        echo("  p <- p + scale_fill_brewer(palette=\"" + pal + "\")\n");
+        echo("}\n");
+    }
+
     if(getValue("coord_flip") == "1") echo("p <- p + ggplot2::coord_flip()\n");
     if(x == "") echo("p <- p + ggplot2::theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(x=NULL)\n");
      
@@ -73,7 +106,7 @@ function calculate(is_preview){
 
 function printout(is_preview){
 	// read in variables from dialog
-
+	var varwidth = getValue("varwidth");
 
 	// printout the results
 	if(!is_preview) {

@@ -32,10 +32,10 @@ function calculate(is_preview){
       var cumul = (getValue("cumul") == "1") ? "TRUE" : "FALSE";
       var total = (getValue("total") == "1") ? "TRUE" : "FALSE";
       var sort = getValue("sort");
-      var na_ex = (getValue("na_exclude") == "1") ? "NA" : "NULL";
-      echo("var_vec <- " + svy + "$variables[[" + "\"" + x + "\"]]\n");
-      echo("wt_vec <- weights(" + svy + ")\n");
-      echo("freq_tab <- questionr::freq(var_vec, w = wt_vec, cumul = " + cumul + ", total = " + total + ", sort = \"" + sort + "\", exclude = " + na_ex + ")\n");
+      var na_ex = (getValue("na_exclude") == "1") ? "no" : "always";
+
+      echo("svy_tab <- survey::svytable(~" + x + ", design = " + svy + ")\n");
+      echo("freq_res <- questionr::freq(svy_tab, cum = " + cumul + ", total = " + total + ", sort = \"" + sort + "\")\n");
   
 }
 
@@ -56,9 +56,20 @@ function printout(is_preview){
     }
    
       var x = getColumnName(getValue("x_var"));
+      var save_name = getValue("save_freq.objectname");
       echo("rk.header(\"Weighted Frequency Table: " + x + " (questionr)\")\n");
-      echo("rk.results(freq_tab)\n");
+      echo("rk.results(freq_res)\n");
+      if (save_name != "") echo("assign(\"" + save_name + "\", freq_res, envir=.GlobalEnv)\n");
   
+	//// save result object
+	// read in saveobject variables
+	var saveFreq = getValue("save_freq");
+	var saveFreqActive = getValue("save_freq.active");
+	var saveFreqParent = getValue("save_freq.parent");
+	// assign object to chosen environment
+	if(saveFreqActive) {
+		echo(".GlobalEnv$" + saveFreq + " <- freq_res\n");
+	}
 
 }
 

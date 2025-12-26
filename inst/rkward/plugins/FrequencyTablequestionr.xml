@@ -34,6 +34,7 @@
 					</dropdown>
 					<checkbox id="na_exclude" label="Exclude NAs from calculation" value="1" checked="true" />
 				</column>
+				<saveobject label="Save Frequency Table" checkable="true" initial="freq_res" id="save_freq" />
 			</column>
 		</row>
 	</dialog>

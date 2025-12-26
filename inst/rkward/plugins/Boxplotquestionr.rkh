@@ -31,6 +31,13 @@
 		</setting>
 		<setting id="coord_flip">
 		</setting>
+		<setting id="varwidth">
+		</setting>
+		<caption id="frm_Ordering" />
+		<setting id="order_median">
+		</setting>
+		<setting id="invert_order">
+		</setting>
 		<caption id="tab_Labels" />
 		<setting id="plot_title">
 		</setting>

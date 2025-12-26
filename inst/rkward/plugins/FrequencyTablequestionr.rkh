@@ -29,6 +29,8 @@
 		</setting>
 		<setting id="na_exclude">
 		</setting>
+		<setting id="save_freq">
+		</setting>
 	</settings>
 	<!--
 		<related>

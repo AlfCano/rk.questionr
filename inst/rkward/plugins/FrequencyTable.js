@@ -41,7 +41,7 @@ function calculate(is_preview){
 
 function printout(is_preview){
 	// printout the results
-	new Header(i18n("Frequency Table (questionr) results")).print();
+	new Header(i18n("Frequency Table results")).print();
 
     function getColumnName(fullName) {
         if (!fullName) return "";
@@ -56,10 +56,8 @@ function printout(is_preview){
     }
    
       var x = getColumnName(getValue("x_var"));
-      var save_name = getValue("save_freq.objectname");
-      echo("rk.header(\"Weighted Frequency Table: " + x + " (questionr)\")\n");
+      echo("rk.header(\"Weighted Frequency Table: " + x + "\")\n");
       echo("rk.results(freq_res)\n");
-      if (save_name != "") echo("assign(\"" + save_name + "\", freq_res, envir=.GlobalEnv)\n");
   
 	//// save result object
 	// read in saveobject variables

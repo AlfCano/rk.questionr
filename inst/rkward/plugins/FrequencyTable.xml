@@ -4,8 +4,8 @@
 		this code was generated using the rkwarddev package.
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
-	<code file="FrequencyTablequestionr.js" />
-	<help file="FrequencyTablequestionr.rkh" />
+	<code file="FrequencyTable.js" />
+	<help file="FrequencyTable.rkh" />
 	<!--
 		<dependencies>
 		</dependencies>
@@ -18,7 +18,7 @@
 			<connect governor="!edit!.state" client="!edit!.enabled" />
 		-->
 	</logic>
-	<dialog label="Survey Frequency Table (questionr)">
+	<dialog label="Frequency Table">
 		<row id="row_vSSDVSC1ST">
 			<varselector id="svy_selector" label="Select survey object" />
 			<column id="clm_vSDVSC1STR">

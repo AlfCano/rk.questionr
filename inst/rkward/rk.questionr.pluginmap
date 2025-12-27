@@ -3,9 +3,9 @@
 >
 <document
 	base_prefix=""
-	namespace="BarChartquestionr"
-	id="BarChartquestionr_rkward"
-	po_id="BarChartquestionr_rkward"
+	namespace="BarChart"
+	id="BarChart_rkward"
+	po_id="BarChart_rkward"
 	priority="medium"
 >
 	<!--
@@ -20,8 +20,8 @@
 		name="rk.questionr"
 		shortinfo="A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables."
 		longinfo="A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables."
-		version="0.4.6"
-		releasedate="2025-12-26"
+		version="0.4.7"
+		releasedate="2025-12-27"
 		url="https://github.com/AlfCano/rk.questionr"
 		license="GPL (&gt;= 3)"
 	>
@@ -40,31 +40,31 @@
 	/>
 	<components>
 		<component
-			id="cmp_BarChartqustnrHstgrmqstnr"
-			label="Histogram (questionr)"
+			id="cmp_BarChartHistogram"
+			label="Histogram"
 			type="standard"
-			file="plugins/Histogramquestionr.xml"
+			file="plugins/Histogram.xml"
 		>
 		</component>
 		<component
-			id="cmp_BarChartquestnrBxpltqstnr"
-			label="Boxplot (questionr)"
+			id="cmp_BarChartBoxplot"
+			label="Boxplot"
 			type="standard"
-			file="plugins/Boxplotquestionr.xml"
+			file="plugins/Boxplot.xml"
 		>
 		</component>
 		<component
-			id="cmp_BrChrtqstnrFrqncyTblqstnr"
-			label="Frequency Table (questionr)"
+			id="cmp_BarChartFrequencyTable"
+			label="Frequency Table"
 			type="standard"
-			file="plugins/FrequencyTablequestionr.xml"
+			file="plugins/FrequencyTable.xml"
 		>
 		</component>
 		<component
-			id="cmp_BarChartqustnrBrChrtqstnr"
-			label="Bar Chart (questionr)"
+			id="cmp_BarChartBarChart"
+			label="Bar Chart"
 			type="standard"
-			file="plugins/BarChartquestionr.xml"
+			file="plugins/BarChart.xml"
 		>
 		</component>
 	</components>
@@ -78,11 +78,11 @@
 				label="Graphs"
 			>
 				<menu
-					id="men_ggGraphs"
-					label="ggGraphs"
+					id="men_questionr"
+					label="questionr"
 				>
 					<entry
-						component="cmp_BarChartqustnrHstgrmqstnr"
+						component="cmp_BarChartHistogram"
 					/>
 				</menu>
 			</menu>
@@ -96,11 +96,11 @@
 				label="Graphs"
 			>
 				<menu
-					id="men_ggGraphs"
-					label="ggGraphs"
+					id="men_questionr"
+					label="questionr"
 				>
 					<entry
-						component="cmp_BarChartquestnrBxpltqstnr"
+						component="cmp_BarChartBoxplot"
 					/>
 				</menu>
 			</menu>
@@ -114,7 +114,7 @@
 				label="Descriptive"
 			>
 				<entry
-					component="cmp_BrChrtqstnrFrqncyTblqstnr"
+					component="cmp_BarChartFrequencyTable"
 				/>
 			</menu>
 		</menu>
@@ -127,11 +127,11 @@
 				label="Graphs"
 			>
 				<menu
-					id="men_ggGraphs"
-					label="ggGraphs"
+					id="men_questionr"
+					label="questionr"
 				>
 					<entry
-						component="cmp_BarChartqustnrBrChrtqstnr"
+						component="cmp_BarChartBarChart"
 					/>
 				</menu>
 			</menu>

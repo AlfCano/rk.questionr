@@ -42,12 +42,12 @@ function calculate(is_preview){
     var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
     echo("p <- questionr::ggsurvey(" + svy + ") + \n");
     if(dens == "1") {
-       echo("  ggplot2::geom_histogram(aes(x=" + x + ", weight=.weights, y=..density..), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\") + \n");
-       echo("  ggplot2::geom_density(aes(x=" + x + ", weight=.weights), alpha=0.3, fill=\"grey50\")\n");
+       echo("  geom_histogram(aes(x=" + x + ", weight=.weights, y=after_stat(density)), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\") + \n");
+       echo("  geom_density(aes(x=" + x + ", weight=.weights), alpha=0.3, fill=\"grey50\")\n");
     } else {
-       echo("  ggplot2::geom_histogram(aes(x=" + x + ", weight=.weights), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\")\n");
+       echo("  geom_histogram(aes(x=" + x + ", weight=.weights), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\")\n");
     }
-    if(facet) echo("p <- p + ggplot2::facet_wrap(~" + facet + ")\n");
+    if(facet) echo("p <- p + facet_wrap(~" + facet + ")\n");
      
     var labs = [];
     var xl = getValue("plot_xlab"); var xlw = getValue("plot_xlab_wrap");
@@ -59,16 +59,16 @@ function calculate(is_preview){
     if(getValue("plot_title")) labs.push("title=\"" + getValue("plot_title") + "\"");
     if(getValue("plot_subtitle")) labs.push("subtitle=\"" + getValue("plot_subtitle") + "\"");
     if(getValue("plot_caption")) labs.push("caption=\"" + getValue("plot_caption") + "\"");
-    if(labs.length > 0) echo("p <- p + ggplot2::labs(" + labs.join(",") + ")\n");
+    if(labs.length > 0) echo("p <- p + labs(" + labs.join(",") + ")\n");
 
-    if(getValue("theme_x_val_wrap") > 0) echo("p <- p + ggplot2::scale_x_discrete(labels = scales::label_wrap(" + getValue("theme_x_val_wrap") + "))\n");
-    if(getValue("theme_y_val_wrap") > 0) echo("p <- p + ggplot2::scale_y_discrete(labels = scales::label_wrap(" + getValue("theme_y_val_wrap") + "))\n");
+    if(getValue("theme_x_val_wrap") > 0) echo("p <- p + scale_x_discrete(labels = scales::label_wrap(" + getValue("theme_x_val_wrap") + "))\n");
+    if(getValue("theme_y_val_wrap") > 0) echo("p <- p + scale_y_discrete(labels = scales::label_wrap(" + getValue("theme_y_val_wrap") + "))\n");
 
     var thm = [];
-    if(getValue("theme_text_rel") != 1) thm.push("text=ggplot2::element_text(size=ggplot2::rel(" + getValue("theme_text_rel") + "))");
+    if(getValue("theme_text_rel") != 1) thm.push("text=element_text(size=rel(" + getValue("theme_text_rel") + "))");
     if(getValue("theme_legend_pos") != "right") thm.push("legend.position=\"" + getValue("theme_legend_pos") + "\"");
-    if(getValue("theme_x_angle") != 0) thm.push("axis.text.x=ggplot2::element_text(angle=" + getValue("theme_x_angle") + ", hjust=" + getValue("theme_x_hjust") + ")");
-    if(thm.length > 0) echo("p <- p + ggplot2::theme(" + thm.join(",") + ")\n");
+    if(getValue("theme_x_angle") != 0) thm.push("axis.text.x=element_text(angle=" + getValue("theme_x_angle") + ", hjust=" + getValue("theme_x_hjust") + ")");
+    if(thm.length > 0) echo("p <- p + theme(" + thm.join(",") + ")\n");
   
 }
 
@@ -78,18 +78,21 @@ function printout(is_preview){
 
 	// printout the results
 	if(!is_preview) {
-		new Header(i18n("Histogram (questionr) results")).print();	
+		new Header(i18n("Histogram results")).print();	
 	}
     if(!is_preview){
       var graph_options = [];
       graph_options.push("device.type=\"" + getValue("device_type") + "\"");
       graph_options.push("width=" + getValue("dev_width"));
       graph_options.push("height=" + getValue("dev_height"));
+      graph_options.push("res=" + getValue("dev_res"));
       graph_options.push("bg=\"" + getValue("dev_bg") + "\"");
-      echo("try(rk.graph.on(" + graph_options.join(", ") + "))\n");
+      echo("rk.graph.on(" + graph_options.join(", ") + ")\n");
     }
-    echo("try(print(p))\n");
-    if(!is_preview){ echo("try(rk.graph.off())\n"); }
+    echo("try({\n");
+    echo("  print(p)\n");
+    echo("})\n");
+    if(!is_preview){ echo("rk.graph.off()\n"); }
   
 
 }

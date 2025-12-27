@@ -5,7 +5,7 @@
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
 	<title>
-		Boxplot (questionr)
+		Histogram
 	</title>
 	<summary>
 	</summary>
@@ -20,23 +20,16 @@
 		<caption id="tab_Data" />
 		<setting id="svy_object">
 		</setting>
-		<setting id="y_var">
-		</setting>
 		<setting id="x_var">
 		</setting>
+		<setting id="facet_var">
+		</setting>
 		<caption id="tab_Options" />
-		<setting id="fill_by_group">
+		<setting id="bins">
 		</setting>
-		<setting id="palette_input">
+		<setting id="fill_col">
 		</setting>
-		<setting id="coord_flip">
-		</setting>
-		<setting id="varwidth">
-		</setting>
-		<caption id="frm_Ordering" />
-		<setting id="order_median">
-		</setting>
-		<setting id="invert_order">
+		<setting id="show_dens">
 		</setting>
 		<caption id="tab_Labels" />
 		<setting id="plot_title">
@@ -80,6 +73,8 @@
 		<setting id="dev_width">
 		</setting>
 		<setting id="dev_height">
+		</setting>
+		<setting id="dev_res">
 		</setting>
 		<setting id="dev_bg">
 		</setting>

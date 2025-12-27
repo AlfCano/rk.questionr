@@ -4,8 +4,8 @@
 		this code was generated using the rkwarddev package.
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
-	<code file="Boxplotquestionr.js" />
-	<help file="Boxplotquestionr.rkh" />
+	<code file="Boxplot.js" />
+	<help file="Boxplot.rkh" />
 	<!--
 		<dependencies>
 		</dependencies>
@@ -18,7 +18,7 @@
 			<connect governor="!edit!.state" client="!edit!.enabled" />
 		-->
 	</logic>
-	<dialog label="Survey Boxplot (questionr)">
+	<dialog label="Boxplot">
 		<row id="row_vSDDSDNVYG">
 			<varselector id="svy_selector" label="Select survey object" />
 			<column id="clm_tDDSDNVYGV">
@@ -106,6 +106,7 @@
 							</dropdown>
 							<spinbox label="Width (px)" id="dev_width" initial="1024" min="100" max="4000" />
 							<spinbox label="Height (px)" id="dev_height" initial="724" min="100" max="4000" />
+							<spinbox label="Resolution (ppi)" id="dev_res" initial="150" min="50" max="600" />
 							<dropdown id="dev_bg" label="Background">
 								<option label="Transparent" value="transparent" checked="true" />
 								<option label="White" value="white" />

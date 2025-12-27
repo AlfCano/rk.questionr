@@ -4,8 +4,8 @@
 		this code was generated using the rkwarddev package.
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
-	<code file="BarChartquestionr.js" />
-	<help file="BarChartquestionr.rkh" />
+	<code file="BarChart.js" />
+	<help file="BarChart.rkh" />
 	<!--
 		<dependencies>
 		</dependencies>
@@ -18,7 +18,7 @@
 			<connect governor="!edit!.state" client="!edit!.enabled" />
 		-->
 	</logic>
-	<dialog label="Survey Bar Chart (questionr)">
+	<dialog label="Bar Chart">
 		<row id="row_vSDDSDVFFO">
 			<varselector id="svy_selector" label="Select survey object" />
 			<column id="clm_tDDSDVFFON">
@@ -143,6 +143,7 @@
 							</dropdown>
 							<spinbox label="Width (px)" id="dev_width" initial="1024" min="100" max="4000" />
 							<spinbox label="Height (px)" id="dev_height" initial="724" min="100" max="4000" />
+							<spinbox label="Resolution (ppi)" id="dev_res" initial="150" min="50" max="600" />
 							<dropdown id="dev_bg" label="Background">
 								<option label="Transparent" value="transparent" checked="true" />
 								<option label="White" value="white" />

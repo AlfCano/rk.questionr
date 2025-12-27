@@ -5,7 +5,7 @@
 	perhaps don't make changes here, but in the rkwarddev script instead!
 	-->
 	<title>
-		Bar Chart (questionr)
+		Boxplot
 	</title>
 	<summary>
 	</summary>
@@ -20,46 +20,23 @@
 		<caption id="tab_Data" />
 		<setting id="svy_object">
 		</setting>
+		<setting id="y_var">
+		</setting>
 		<setting id="x_var">
 		</setting>
-		<setting id="fill_var">
-		</setting>
-		<setting id="facet_var">
-		</setting>
-		<setting id="omit_na">
-		</setting>
 		<caption id="tab_Options" />
-		<setting id="freq_type">
-		</setting>
-		<setting id="bar_pos">
-		</setting>
-		<caption id="frm_XxsOrdrn" />
-		<setting id="order_x_freq">
-		</setting>
-		<setting id="invert_order">
-		</setting>
-		<setting id="order_by_level_input">
-		</setting>
-		<setting id="coord_flip">
-		</setting>
-		<setting id="facet_layout">
+		<setting id="fill_by_group">
 		</setting>
 		<setting id="palette_input">
 		</setting>
-		<caption id="tab_ValuLbls" />
-		<setting id="show_value_labels">
+		<setting id="coord_flip">
 		</setting>
-		<setting id="label_style">
+		<setting id="varwidth">
 		</setting>
-		<setting id="label_color_preset">
+		<caption id="frm_Ordering" />
+		<setting id="order_median">
 		</setting>
-		<setting id="label_color_custom">
-		</setting>
-		<setting id="label_size">
-		</setting>
-		<setting id="label_decimals">
-		</setting>
-		<setting id="label_max_overlaps">
+		<setting id="invert_order">
 		</setting>
 		<caption id="tab_Labels" />
 		<setting id="plot_title">
@@ -103,6 +80,8 @@
 		<setting id="dev_width">
 		</setting>
 		<setting id="dev_height">
+		</setting>
+		<setting id="dev_res">
 		</setting>
 		<setting id="dev_bg">
 		</setting>

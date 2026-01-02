@@ -15,7 +15,7 @@ local({
     ),
     about = list(
       desc = "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables.",
-      version = "0.4.7", # Frozen
+      version = "0.4.8",
       url = "https://github.com/AlfCano/rk.questionr",
       license = "GPL (>= 3)"
     )

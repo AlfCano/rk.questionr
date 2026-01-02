@@ -49,12 +49,12 @@ function calculate(is_preview){
     var svy = getValue("svy_object"); var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
     var fill_grp = getValue("fill_by_group"); var pal = getValue("palette_input");
     var processed_svy = svy;
-    
+
     echo("options(survey.lonely.psu=\"adjust\")\n");
-    
+
     var ord = getValue("order_median");
     var inv = getValue("invert_order");
-    
+
     if (ord == "1" && x != "") {
         echo("design_for_ord <- subset(" + processed_svy + ", is.finite(" + y + "))\n");
         echo("med_df <- survey::svyby(formula = ~" + y + ", by = ~" + x + ", design = design_for_ord, FUN = survey::svyquantile, quantiles = 0.5, na.rm = TRUE, ci = FALSE, keep.var = FALSE)\n");
@@ -68,7 +68,7 @@ function calculate(is_preview){
     var fill_aes = (fill_grp == "1" && x != "") ? ", fill=" + x : "";
     var vw = (getValue("varwidth") == "1") ? "TRUE" : "FALSE";
     echo("  geom_boxplot(aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + "), varwidth=" + vw + ")\n");
-    
+
     if(fill_grp == "1" && x != "") {
         echo("n_colors <- length(unique(na.omit(" + svy + "$variables[[" + "\"" + x + "\"]])))\n");
         echo("if(n_colors > 8) {\n");
@@ -77,7 +77,7 @@ function calculate(is_preview){
         echo("  p <- p + scale_fill_brewer(palette=\"" + pal + "\")\n");
         echo("}\n");
     }
-    
+
     if(getValue("coord_flip") == "1") echo("p <- p + coord_flip()\n");
     if(x == "") echo("p <- p + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(x=NULL)\n");
      

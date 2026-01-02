@@ -65,7 +65,7 @@ function calculate(is_preview){
     var svy = getValue("svy_object"); var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
     var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
     var processed_svy = svy;
-    
+
     // NA Omission
     if (getValue("omit_na") == "1") {
         var conds = [];
@@ -77,17 +77,17 @@ function calculate(is_preview){
             processed_svy = "svy_clean";
         }
     }
-    
+
     var freq = getValue("freq_type"); var pos = getValue("bar_pos"); var ord = getValue("order_x_freq");
     var inv = getValue("invert_order"); var ord_lvl = getValue("order_by_level_input");
     var pal = getValue("palette_input"); var flip = getValue("coord_flip");
-    
+
     // --- RELATIVE FREQUENCY LOGIC ---
     if(freq == "rel") {
         echo("plot_data <- " + processed_svy + " %>% survey::svytable(~" + x + (fill ? "+"+fill : "") + (facet ? "+"+facet : "") + ", design=.) %>% as.data.frame()\n");
         // Calculate Proportions
         echo("plot_data <- plot_data %>% group_by(" + x + (facet ? ","+facet : "") + ") %>% mutate(Prop = Freq/sum(Freq)) %>% ungroup()\n");
-        
+
         // Ordering (Using mutate to ensure variable scope)
         if(ord == "1") {
             var metric_val = "Freq"; // default total
@@ -101,9 +101,9 @@ function calculate(is_preview){
             var desc_arg = (inv == "1") ? "" : ", .desc=TRUE"; // Invert logic for fct_reorder is opposite to sort()
             echo("plot_data <- plot_data %>% mutate(" + x + " = fct_reorder(" + x + ", " + metric_val + desc_arg + "))\n");
         }
-        
+
         echo("p <- ggplot(plot_data, aes(x=" + x + ", y=Prop" + (fill ? ", fill="+fill : "") + ")) + geom_col(position=\"" + pos + "\") + scale_y_continuous(labels=scales::percent)\n");
-    
+
     // --- ABSOLUTE FREQUENCY LOGIC ---
     } else {
         if(ord == "1") {
@@ -111,7 +111,7 @@ function calculate(is_preview){
                  // Sort by specific fill level
                  echo("ord_stats <- svytable(~" + x + "+" + fill + ", " + processed_svy + ")\n");
                  echo("target_col <- which(colnames(ord_stats) == \"" + ord_lvl + "\")\n");
-                 echo("ord_vals <- if(length(target_col) > 0) ord_stats[, target_col] else margin.table(ord_stats, 1)\n"); 
+                 echo("ord_vals <- if(length(target_col) > 0) ord_stats[, target_col] else margin.table(ord_stats, 1)\n");
              } else {
                  // Sort by total count
                  echo("ord_vals <- svytable(~" + x + ", " + processed_svy + ")\n");
@@ -122,7 +122,7 @@ function calculate(is_preview){
         }
         echo("p <- questionr::ggsurvey(" + processed_svy + ") + geom_bar(aes(x=" + x + ", weight=.weights" + (fill ? ", fill="+fill : "") + "), position=\"" + pos + "\")\n");
     }
-    
+
     // --- COMMON STYLING ---
     if(fill) {
         var legw = getValue("legend_wrap_width");
@@ -134,9 +134,9 @@ function calculate(is_preview){
         echo("  p <- p + scale_fill_brewer(palette=\"" + pal + "\"" + lab_opt + ")\n");
         echo("}\n");
     }
-    
+
     if(flip == "1") echo("p <- p + coord_flip()\n");
-    
+
     if(facet) {
         var lay = getValue("facet_layout");
         var lay_opt = "";
@@ -144,7 +144,7 @@ function calculate(is_preview){
         if(lay == "col") lay_opt = ", ncol=1";
         echo("p <- p + facet_wrap(~" + facet + lay_opt + ")\n");
     }
-    
+
     // --- LABELS ---
     if(getValue("show_value_labels") == "1") {
        var style = getValue("label_style");
@@ -155,21 +155,21 @@ function calculate(is_preview){
        var geom = "geom_text";
        if(style.includes("label")) geom = "geom_label";
        if(style.includes("repel")) geom = "ggrepel::geom_" + style;
-       
+
        var aes_lbl = (freq == "rel") ? "scales::percent(Prop, accuracy=0." + "0".repeat(dec) + "1)" : "scales::number(after_stat(count), accuracy=1)";
        if(pos == "fill") aes_lbl = "scales::percent(after_stat(prop), accuracy=0." + "0".repeat(dec) + "1)";
-       
+
        var opts = ", color=\"" + col + "\", size=" + size;
        if(style.includes("repel")) opts += ", max.overlaps=" + getValue("label_max_overlaps");
        if(style.includes("label")) opts += ", fill=\"white\"";
-       
+
        var pos_func = "position_stack(vjust=0.5)";
        if(pos == "dodge") pos_func = "position_dodge(width=0.9)";
        if(pos == "fill") pos_func = "position_fill(vjust=0.5)";
-       
+
        var aes_extras = "";
        if(fill) aes_extras = ", group=" + fill;
-       
+
        if(freq == "rel") {
            echo("p <- p + " + geom + "(aes(label=" + aes_lbl + aes_extras + "), position=" + pos_func + opts + ")\n");
        } else {

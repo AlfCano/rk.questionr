@@ -1,0 +1,350 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: rk.questionr 0.4.8\n"
+"Report-Msgid-Bugs-To: https://mail.kde.org/mailman/listinfo/kde-i18n-doc\n"
+"POT-Creation-Date: 2025-01-02 12:00+0000\n"
+"PO-Revision-Date: 2025-01-02 12:00+0000\n"
+"Last-Translator: Your Name <your.email@example.com>\n"
+"Language-Team: German <kde-i18n-de@kde.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0\n"
+
+msgid "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables."
+msgstr "Ein Plugin-Paket zur Analyse komplexer Erhebungsdesigns. Enthält Balkendiagramme, Histogramme, Boxplots und Häufigkeitstabellen."
+
+msgid "Bar Chart"
+msgstr "Balkendiagramm"
+
+msgid "Survey"
+msgstr "Erhebung"
+
+msgid "Graphs"
+msgstr "Grafiken"
+
+msgid "questionr"
+msgstr "questionr"
+
+msgid "Color Palette (ColorBrewer)"
+msgstr "Farbpalette (ColorBrewer)"
+
+msgid "Default (Paired)"
+msgstr "Standard (Paired)"
+
+msgid "Plot Title"
+msgstr "Diagrammtitel"
+
+msgid "Plot Subtitle"
+msgstr "Diagrammuntertitel"
+
+msgid "X-axis Label (blank for auto)"
+msgstr "X-Achsen-Beschriftung (leer für auto)"
+
+msgid "Wrap X-axis Label at (chars)"
+msgstr "X-Achsen-Beschriftung umbrechen bei (Zeichen)"
+
+msgid "Y-axis Label"
+msgstr "Y-Achsen-Beschriftung"
+
+msgid "Wrap Y-axis Label at (chars)"
+msgstr "Y-Achsen-Beschriftung umbrechen bei (Zeichen)"
+
+msgid "Legend Title (blank for auto)"
+msgstr "Legendentitel (leer für auto)"
+
+msgid "Wrap Legend Title at (chars)"
+msgstr "Legendentitel umbrechen bei (Zeichen)"
+
+msgid "Wrap Legend Labels at (chars)"
+msgstr "Legendenbeschriftungen umbrechen bei (Zeichen)"
+
+msgid "Plot Caption"
+msgstr "Diagrammbeschriftung (Caption)"
+
+msgid "Overall text size"
+msgstr "Gesamttextgröße"
+
+msgid "Legend Position"
+msgstr "Legendenposition"
+
+msgid "Right"
+msgstr "Rechts"
+
+msgid "Left"
+msgstr "Links"
+
+msgid "Top"
+msgstr "Oben"
+
+msgid "Bottom"
+msgstr "Unten"
+
+msgid "None"
+msgstr "Keine"
+
+msgid "X-Axis Text"
+msgstr "X-Achsen-Text"
+
+msgid "Angle"
+msgstr "Winkel"
+
+msgid "H-Just"
+msgstr "H-Ausrichtung"
+
+msgid "Value Labels Wrap (chars)"
+msgstr "Wertebeschriftung umbrechen (Zeichen)"
+
+msgid "Y-Axis Text"
+msgstr "Y-Achsen-Text"
+
+msgid "Device type"
+msgstr "Gerätetyp"
+
+msgid "Width (px)"
+msgstr "Breite (px)"
+
+msgid "Height (px)"
+msgstr "Höhe (px)"
+
+msgid "Resolution (ppi)"
+msgstr "Auflösung (ppi)"
+
+msgid "Background"
+msgstr "Hintergrund"
+
+msgid "Transparent"
+msgstr "Transparent"
+
+msgid "White"
+msgstr "Weiß"
+
+msgid "Select survey object"
+msgstr "Erhebungsobjekt auswählen"
+
+msgid "Create a bar chart for categorical variables from a complex survey design object, using the 'questionr' and 'ggsurvey' packages."
+msgstr "Erstellen Sie ein Balkendiagramm für kategorische Variablen aus einem komplexen Erhebungsdesign-Objekt unter Verwendung der Pakete 'questionr' und 'ggsurvey'."
+
+msgid "Select a survey design object and a categorical variable. Optionally select a Fill variable and Facet variable."
+msgstr "Wählen Sie ein Erhebungsdesign-Objekt und eine kategorische Variable aus. Wählen Sie optional eine Füllvariable und eine Facettierungsvariable."
+
+msgid "Survey Design"
+msgstr "Erhebungsdesign"
+
+msgid "Variable"
+msgstr "Variable"
+
+msgid "Fill"
+msgstr "Füllung"
+
+msgid "Facet"
+msgstr "Facette"
+
+msgid "Omit NA cases from selected variables"
+msgstr "NA-Fälle aus ausgewählten Variablen ausschließen"
+
+msgid "X-axis Ordering"
+msgstr "X-Achsen-Sortierung"
+
+msgid "Order X-axis by frequency"
+msgstr "X-Achse nach Häufigkeit sortieren"
+
+msgid "Invert final order"
+msgstr "Endgültige Reihenfolge umkehren"
+
+msgid "Order by level of Fill var (optional)"
+msgstr "Nach Ebene der Füllvariable sortieren (optional)"
+
+msgid "Frequency type"
+msgstr "Häufigkeitstyp"
+
+msgid "Absolute"
+msgstr "Absolut"
+
+msgid "Relative"
+msgstr "Relativ"
+
+msgid "Bar position"
+msgstr "Balkenposition"
+
+msgid "Stack"
+msgstr "Gestapelt (Stack)"
+
+msgid "Dodge"
+msgstr "Nebeneinander (Dodge)"
+
+msgid "Fill (Prop)"
+msgstr "Gefüllt (Fill - Prop)"
+
+msgid "Flip coordinates"
+msgstr "Koordinaten tauschen"
+
+msgid "Facet Layout"
+msgstr "Facetten-Layout"
+
+msgid "Wrap"
+msgstr "Umbrechen (Wrap)"
+
+msgid "Row"
+msgstr "Zeile"
+
+msgid "Col"
+msgstr "Spalte"
+
+msgid "Show Labels"
+msgstr "Beschriftungen anzeigen"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Plain Text"
+msgstr "Einfacher Text"
+
+msgid "Label (Bg)"
+msgstr "Label (Hintergrund)"
+
+msgid "Repelled Text"
+msgstr "Abgestoßener Text"
+
+msgid "Repelled Label"
+msgstr "Abgestoßene Label"
+
+msgid "Color Preset"
+msgstr "Farbvoreinstellung"
+
+msgid "Black"
+msgstr "Schwarz"
+
+msgid "Grey"
+msgstr "Grau"
+
+msgid "Blue"
+msgstr "Blau"
+
+msgid "Custom"
+msgstr "Benutzerdefiniert"
+
+msgid "Custom Color"
+msgstr "Benutzerdefinierte Farbe"
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Decimals"
+msgstr "Dezimalstellen"
+
+msgid "Max Overlaps"
+msgstr "Max. Überlappungen"
+
+msgid "Data"
+msgstr "Daten"
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Value Labels"
+msgstr "Wertebeschriftungen"
+
+msgid "Labels"
+msgstr "Beschriftungen"
+
+msgid "Theme"
+msgstr "Thema"
+
+msgid "Output"
+msgstr "Ausgabe"
+
+msgid "Histogram"
+msgstr "Histogramm"
+
+msgid "Create a weighted histogram."
+msgstr "Gewichtetes Histogramm erstellen."
+
+msgid "Select survey and numeric variable."
+msgstr "Erhebung und numerische Variable auswählen."
+
+msgid "Numeric Variable"
+msgstr "Numerische Variable"
+
+msgid "Facet Variable"
+msgstr "Facettierungsvariable"
+
+msgid "Bins"
+msgstr "Klassen (Bins)"
+
+msgid "Density Curve"
+msgstr "Dichtekurve"
+
+msgid "Boxplot"
+msgstr "Boxplot"
+
+msgid "Create weighted boxplots."
+msgstr "Gewichtete Boxplots erstellen."
+
+msgid "Select survey, numeric Y, and grouping X."
+msgstr "Erhebung, numerisches Y und gruppierendes X auswählen."
+
+msgid "Numeric Variable (Y)"
+msgstr "Numerische Variable (Y)"
+
+msgid "Grouping Variable (X)"
+msgstr "Gruppierungsvariable (X)"
+
+msgid "Fill by Group"
+msgstr "Nach Gruppe füllen"
+
+msgid "Flip Coordinates"
+msgstr "Koordinaten tauschen"
+
+msgid "Varwidth"
+msgstr "Variable Breite"
+
+msgid "Ordering"
+msgstr "Sortierung"
+
+msgid "Order X by Median Y"
+msgstr "X nach Median Y sortieren"
+
+msgid "Invert Order"
+msgstr "Reihenfolge umkehren"
+
+msgid "Frequency Table"
+msgstr "Häufigkeitstabelle"
+
+msgid "Generate weighted freq table."
+msgstr "Gewichtete Häufigkeitstabelle generieren."
+
+msgid "Select survey and variable."
+msgstr "Erhebung und Variable auswählen."
+
+msgid "Show Cumulative %"
+msgstr "Kumulierte % anzeigen"
+
+msgid "Show Total Row"
+msgstr "Summenzeile anzeigen"
+
+msgid "Sort"
+msgstr "Sortieren"
+
+msgid "Decreasing (Freq)"
+msgstr "Absteigend (Häufigkeit)"
+
+msgid "Increasing (Freq)"
+msgstr "Aufsteigend (Häufigkeit)"
+
+msgid "None (Levels)"
+msgstr "Keine (Ebenen)"
+
+msgid "Exclude NAs from calculation"
+msgstr "NAs von Berechnung ausschließen"
+
+msgid "Save Frequency Table"
+msgstr "Häufigkeitstabelle speichern"
+
+msgid "Descriptive"
+msgstr "Deskriptiv"
+
+msgid "Weighted Frequency Table: "
+msgstr "Gewichtete Häufigkeitstabelle: "

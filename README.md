@@ -1,10 +1,22 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.4.7-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.4.8-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
+[![R Linter](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml/badge.svg)](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml)
 
 This RKWard plugin provides a powerful suite of tools for analyzing and visualizing complex survey data (weighted data). It leverages the `questionr` package alongside `ggplot2` and `survey` to produce statistically correct, publication-ready graphs and tables without writing code.
+
+## What's New in Version 0.4.8
+
+This version focuses on accessibility and internationalization. The entire plugin suite has been fully localized.
+
+*   **Multilingual Support:** The interface is now available in:
+    *   🇺🇸 English (Default)
+    *   🇪🇸 Spanish (`es`)
+    *   🇫🇷 French (`fr`)
+    *   🇩🇪 German (`de`)
+    *   🇧🇷 Portuguese (Brazil) (`pt_BR`)
 
 ## Features
 
@@ -51,15 +63,19 @@ All graphical plugins in this package share a consistent set of styling tools:
 
 ## Installation
 
-1.  **Prerequisite:** Ensure you have the `remotes` package installed in R:
-    ```R
-    install.packages(c("questionr", "ggplot2", "survey", "ggrepel", "scales", "dplyr", "forcats", "RColorBrewer"))
-    ```
+1.  **Prerequisite:** Ensure you have the `remotes` (or `devtools`) package installed in R.
 2.  **Install:** Run the following command in the RKWard R Console:
+
     ```R
-    remotes::install_github("AlfCano/rk.questionr")
+    # If you don't have devtools/remotes installed:
+    # install.packages("remotes")
+    
+    local({
+      require(remotes)
+      install_github("AlfCano/rk.questionr", force = TRUE)
+    })
     ```
-3.  **Restart:** Restart RKWard to load the new menu entries.
+3.  **Restart:** Restart RKWard to load the new menu entries and translations.
 
 ## Usage
 
@@ -70,18 +86,19 @@ After installation, the plugins are organized under the **Survey** menu:
     *   `Survey -> Graphs -> questionr -> Histogram`
     *   `Survey -> Graphs -> questionr -> Boxplot`
 *   **Tables:**
-    *   `Survey -> Descriptive -> Frequency Table (questionr)`
+    *   `Survey -> Descriptive -> Frequency Table`
 
 ## Dependencies
 
 This plugin requires the following R packages:
 *   `questionr`
 *   `survey`
-*   `srvyr`
 *   `ggplot2`
 *   `ggrepel`
 *   `RColorBrewer`
-*   `dplyr` / `forcats` / `stringr` / `scales`
+*   `dplyr`
+*   `forcats`
+*   `scales`
 
 ## Author & License
 

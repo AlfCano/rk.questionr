@@ -38,9 +38,26 @@ function calculate(is_preview){
         else { return fullName; }
     }
    
+    var svy = getValue("svy_object");
+    var sub_expr = getValue("subset_expr");
+    var drop = getValue("drop_levels");
+    var processed_svy = svy;
+
+    if (sub_expr !== "") {
+        echo("svy_filtered <- subset(" + svy + ", " + sub_expr + ")\n");
+        processed_svy = "svy_filtered";
+
+        if (drop == "1") {
+            // Aplicamos forcats::fct_drop directo al data.frame interno del diseño
+            echo(processed_svy + "$variables <- " + processed_svy + "$variables %>% dplyr::mutate(dplyr::across(tidyselect::where(is.factor), forcats::fct_drop))\n");
+        }
+    }
+   
     var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
     var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
-    echo("p <- questionr::ggsurvey(" + svy + ") + \n");
+
+    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \n");
+
     if(dens == "1") {
        echo("  geom_histogram(aes(x=" + x + ", weight=.weights, y=after_stat(density)), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\") + \n");
        echo("  geom_density(aes(x=" + x + ", weight=.weights), alpha=0.3, fill=\"grey50\")\n");
@@ -80,6 +97,11 @@ function printout(is_preview){
 	if(!is_preview) {
 		new Header(i18n("Histogram results")).print();	
 	}
+    if(getValue("save_plot.active")) {
+        // Regla #3: Asignar al nombre codificado fijo "my_plot"
+        echo("my_plot <- p\n");
+    }
+
     if(!is_preview){
       var graph_options = [];
       graph_options.push("device.type=\"" + getValue("device_type") + "\"");
@@ -89,11 +111,28 @@ function printout(is_preview){
       graph_options.push("bg=\"" + getValue("dev_bg") + "\"");
       echo("rk.graph.on(" + graph_options.join(", ") + ")\n");
     }
+
     echo("try({\n");
-    echo("  print(p)\n");
+    if(getValue("save_plot.active")) {
+        echo("  print(my_plot)\n");
+    } else {
+        echo("  print(p)\n");
+    }
     echo("})\n");
+
     if(!is_preview){ echo("rk.graph.off()\n"); }
   
+	if(!is_preview) {
+		//// save result object
+		// read in saveobject variables
+		var savePlot = getValue("save_plot");
+		var savePlotActive = getValue("save_plot.active");
+		var savePlotParent = getValue("save_plot.parent");
+		// assign object to chosen environment
+		if(savePlotActive) {
+			echo(".GlobalEnv$" + savePlot + " <- my_plot\n");
+		}	
+	}
 
 }
 

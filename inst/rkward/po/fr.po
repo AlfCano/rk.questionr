@@ -348,3 +348,16 @@ msgstr "Descriptif"
 
 msgid "Weighted Frequency Table: "
 msgstr "Tableau de fréquences pondéré : "
+
+# Nouveaux éléments v0.5.0
+msgid "Data Filtering"
+msgstr "Filtrage des données"
+
+msgid "Subset expression (e.g., age > 18)"
+msgstr "Expression de sous-ensemble (ex., age > 18)"
+
+msgid "Drop unused factor levels (forcats::fct_drop)"
+msgstr "Supprimer les niveaux de facteur non utilisés (forcats::fct_drop)"
+
+msgid "Save plot object as"
+msgstr "Enregistrer l'objet graphique sous"

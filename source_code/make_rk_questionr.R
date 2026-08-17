@@ -15,7 +15,7 @@ local({
     ),
     about = list(
       desc = "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables.",
-      version = "0.4.8",
+      version = "0.5.0",
       url = "https://github.com/AlfCano/rk.questionr",
       license = "GPL (>= 3)"
     )
@@ -38,6 +38,15 @@ local({
         else { return fullName; }
     }
   '
+
+  # --- NUEVOS ELEMENTOS DE UI COMPARTIDOS (v0.5.0) ---
+  data_filters <- rk.XML.frame(label = "Data Filtering", child = rk.XML.col(
+      rk.XML.input(label = "Subset expression (e.g., age > 18)", id.name = "subset_expr"),
+      rk.XML.cbox(label = "Drop unused factor levels (forcats::fct_drop)", id.name = "drop_levels", value = "1", chk = FALSE)
+  ))
+
+  # Regla de Oro #3: Nombre harcodeado en 'initial'
+  plot_save <- rk.XML.saveobj(label = "Save plot object as", initial = "my_plot", chk = FALSE, id.name = "save_plot")
 
   # Full Palette Dropdown
   color_palette_dropdown <- rk.XML.dropdown(label = "Color Palette (ColorBrewer)", id.name = "palette_input", options = list(
@@ -82,10 +91,16 @@ local({
     rk.XML.spinbox(label = "Width (px)", id.name = "dev_width", min = 100, max = 4000, initial = 1024),
     rk.XML.spinbox(label = "Height (px)", id.name = "dev_height", min = 100, max = 4000, initial = 724),
     rk.XML.spinbox(label = "Resolution (ppi)", id.name = "dev_res", min = 50, max = 600, initial = 150),
-    rk.XML.dropdown(label = "Background", id.name = "dev_bg", options = list("Transparent" = list(val = "transparent", chk = TRUE), "White" = list(val = "white")))
+    rk.XML.dropdown(label = "Background", id.name = "dev_bg", options = list("Transparent" = list(val = "transparent", chk = TRUE), "White" = list(val = "white"))),
+    plot_save # <---  NEW ELEMENT
   )
 
   js_printout_shared <- '
+    if(getValue("save_plot.active")) {
+        // Regla #3: Asignar al nombre codificado fijo "my_plot"
+        echo("my_plot <- p\\n");
+    }
+
     if(!is_preview){
       var graph_options = [];
       graph_options.push("device.type=\\"" + getValue("device_type") + "\\"");
@@ -95,9 +110,15 @@ local({
       graph_options.push("bg=\\"" + getValue("dev_bg") + "\\"");
       echo("rk.graph.on(" + graph_options.join(", ") + ")\\n");
     }
+
     echo("try({\\n");
-    echo("  print(p)\\n");
+    if(getValue("save_plot.active")) {
+        echo("  print(my_plot)\\n");
+    } else {
+        echo("  print(p)\\n");
+    }
     echo("})\\n");
+
     if(!is_preview){ echo("rk.graph.off()\\n"); }
   '
 
@@ -124,6 +145,24 @@ local({
     if(thm.length > 0) echo("p <- p + theme(" + thm.join(",") + ")\\n");
   '
 
+  # --- NUEVA LÓGICA DE FILTRADO JS (v0.5.0) ---
+  js_data_prep <- '
+    var svy = getValue("svy_object");
+    var sub_expr = getValue("subset_expr");
+    var drop = getValue("drop_levels");
+    var processed_svy = svy;
+
+    if (sub_expr !== "") {
+        echo("svy_filtered <- subset(" + svy + ", " + sub_expr + ")\\n");
+        processed_svy = "svy_filtered";
+
+        if (drop == "1") {
+            // Aplicamos forcats::fct_drop directo al data.frame interno del diseño
+            echo(processed_svy + "$variables <- " + processed_svy + "$variables %>% dplyr::mutate(dplyr::across(tidyselect::where(is.factor), forcats::fct_drop))\\n");
+        }
+    }
+  '
+
   svy_selector <- rk.XML.varselector(id.name = "svy_selector", label = "Select survey object")
 
   # =========================================================================================
@@ -145,7 +184,10 @@ local({
   bar_x <- rk.XML.varslot(label = "Variable", source = "svy_selector", required = TRUE, id.name = "x_var")
   bar_fill <- rk.XML.varslot(label = "Fill", source = "svy_selector", id.name = "fill_var")
   bar_facet <- rk.XML.varslot(label = "Facet", source = "svy_selector", id.name = "facet_var")
-  bar_data_tab <- rk.XML.col(bar_svy, bar_x, bar_fill, bar_facet, rk.XML.cbox(label = "Omit NA cases from selected variables", id.name = "omit_na", value = "1", chk = TRUE))
+  bar_data_tab <- rk.XML.col(
+      bar_svy, data_filters, bar_x, bar_fill, bar_facet, # <--- Se agregó data_filters
+      rk.XML.cbox(label = "Omit NA cases from selected variables", id.name = "omit_na", value = "1", chk = TRUE)
+  )
   ordering_frame <- rk.XML.frame(label = "X-axis Ordering", child = rk.XML.col(rk.XML.cbox(label = "Order X-axis by frequency", id.name = "order_x_freq", value = "1"), rk.XML.cbox(label = "Invert final order", id.name = "invert_order", value = "1"), rk.XML.input(label = "Order by level of Fill var (optional)", id.name = "order_by_level_input")))
   bar_opts_tab <- rk.XML.col(rk.XML.dropdown(label = "Frequency type", id.name = "freq_type", options = list("Absolute" = list(val = "abs", chk = TRUE), "Relative" = list(val = "rel"))), rk.XML.dropdown(label = "Bar position", id.name = "bar_pos", options = list("Stack" = list(val = "stack", chk = TRUE), "Dodge" = list(val = "dodge"), "Fill (Prop)" = list(val = "fill"))), ordering_frame, rk.XML.cbox(label = "Flip coordinates", id.name = "coord_flip", value = "1"), rk.XML.dropdown(label="Facet Layout", id.name="facet_layout", options=list("Wrap"=list(val="wrap", chk=TRUE), "Row"=list(val="row"), "Col"=list(val="col"))), color_palette_dropdown)
   value_labels_tab <- rk.XML.col(rk.XML.cbox(label="Show Labels", id.name="show_value_labels", value="1"), rk.XML.dropdown(label="Type", id.name="label_style", options=list("Plain Text"=list(val="text", chk=TRUE), "Label (Bg)"=list(val="label"), "Repelled Text"=list(val="text_repel"), "Repelled Label"=list(val="label_repel"))), rk.XML.dropdown(label="Color Preset", id.name="label_color_preset", options=list("Black"=list(val="black", chk=TRUE), "White"=list(val="white"), "Grey"=list(val="grey50"), "Blue"=list(val="blue"), "Custom"=list(val="custom"))), rk.XML.input(label="Custom Color", id.name="label_color_custom"), rk.XML.spinbox(label="Size", id.name="label_size", min=1, max=20, initial=3, real=TRUE), rk.XML.spinbox(label="Decimals", id.name="label_decimals", min=0, max=5, initial=1), rk.XML.spinbox(label="Max Overlaps", id.name="label_max_overlaps", min=0, max=1000, initial=10))
@@ -153,10 +195,9 @@ local({
   dialog_bar <- rk.XML.dialog(label = "Bar Chart", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = bar_data_tab, "Options" = bar_opts_tab, "Value Labels" = value_labels_tab, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
   # Rewritten Bar Chart Logic for Robustness (Fixes object not found in relative freq)
-  js_bar_calc <- paste(js_helpers, '
-    var svy = getValue("svy_object"); var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
+    js_bar_calc <- paste(js_helpers, js_data_prep, '
+    var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
     var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
-    var processed_svy = svy;
 
     // NA Omission
     if (getValue("omit_na") == "1") {
@@ -165,7 +206,8 @@ local({
         if(fill) conds.push("!is.na(" + fill + ")");
         if(facet) conds.push("!is.na(" + facet + ")");
         if(conds.length > 0) {
-            echo("svy_clean <- subset(" + svy + ", " + conds.join(" & ") + ")\\n");
+            // AQUÍ ESTABA EL ERROR: Cambiamos svy por processed_svy
+            echo("svy_clean <- subset(" + processed_svy + ", " + conds.join(" & ") + ")\\n");
             processed_svy = "svy_clean";
         }
     }
@@ -282,10 +324,12 @@ local({
   hist_opts <- rk.XML.col(rk.XML.spinbox(label = "Bins", id.name = "bins", min = 1, max = 100, initial = 30), rk.XML.input(label = "Fill", id.name = "fill_col", initial = "steelblue"), rk.XML.cbox(label = "Density Curve", id.name = "show_dens", value = "1"))
   dialog_hist <- rk.XML.dialog(label = "Histogram", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(hist_svy, hist_x, hist_facet), "Options" = hist_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
-  js_hist_calc <- paste(js_helpers, '
+  js_hist_calc <- paste(js_helpers, js_data_prep, '
     var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
     var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
-    echo("p <- questionr::ggsurvey(" + svy + ") + \\n");
+
+    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \\n");
+
     if(dens == "1") {
        echo("  geom_histogram(aes(x=" + x + ", weight=.weights, y=after_stat(density)), bins=" + bins + ", fill=\\"" + fill + "\\", color=\\"white\\") + \\n");
        echo("  geom_density(aes(x=" + x + ", weight=.weights), alpha=0.3, fill=\\"grey50\\")\\n");
@@ -317,10 +361,10 @@ local({
   )
   dialog_box <- rk.XML.dialog(label = "Boxplot", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(box_svy, box_y, box_x), "Options" = box_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
-  js_box_calc <- paste(js_helpers, '
+  js_box_calc <- paste(js_helpers, js_data_prep,'
     var svy = getValue("svy_object"); var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
     var fill_grp = getValue("fill_by_group"); var pal = getValue("palette_input");
-    var processed_svy = svy;
+
 
     echo("options(survey.lonely.psu=\\"adjust\\")\\n");
 

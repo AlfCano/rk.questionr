@@ -111,6 +111,7 @@
 								<option label="Transparent" value="transparent" checked="true" />
 								<option label="White" value="white" />
 							</dropdown>
+							<saveobject label="Save plot object as" checkable="true" initial="my_plot" id="save_plot" />
 						</column>
 					</tab>
 				</tabbook>

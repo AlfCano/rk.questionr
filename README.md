@@ -1,11 +1,20 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.4.8-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.5.0-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
 [![R Linter](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml/badge.svg)](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml)
 
 This RKWard plugin provides a powerful suite of tools for analyzing and visualizing complex survey data (weighted data). It leverages the `questionr` package alongside `ggplot2` and `survey` to produce statistically correct, publication-ready graphs and tables without writing code.
+
+## What's New in Version 0.5.0
+
+This major update introduces powerful data manipulation directly from the GUI:
+
+*   **Data Filtering (Subset):** Write direct logical expressions (e.g., `age >= 18 & sex == 'Female'`) to filter your survey design on the fly before plotting.
+*   **Clean Factor Levels:** Automatically drop unused factor levels (`forcats::fct_drop`) after subsetting to prevent empty categories in your charts without breaking the survey design.
+*   **Save Plot Objects:** Save any generated `ggplot2` object directly to your R Workspace for further manipulation, combining with `patchwork`, or exporting.
+*   *(Since v0.4.8)* **Multilingual Support:** Fully localized in English, Spanish, French, German, and Portuguese (Brazil).
 
 ## What's New in Version 0.4.8
 
@@ -54,12 +63,14 @@ Generate detailed tabular summaries for categorical variables.
 
 ---
 
-### Shared Customization Features (All Graphs)
-All graphical plugins in this package share a consistent set of styling tools:
+### Shared Features (All Graphs)
+All graphical plugins in this package share a consistent set of data preparation and styling tools:
+*   **Data Filtering**: Apply on-the-fly `subset()` operations and drop unused factor levels before rendering.
+*   **Save Output**: Export the raw `ggplot2` object to your R workspace.
 *   **Theming**: Adjust relative text sizes, legend position, and axis text angles/justification.
 *   **Labels & Wrapping**: Automatic text wrapping for long titles, axis labels, and legend items.
 *   **Palettes**: Integrated **ColorBrewer** palette selector (Paired, Set1, Dark2, Spectral, etc.) with automatic interpolation for variables with many categories.
-*   **Export**: High-resolution export options for PNG, SVG, and JPG with custom dimensions and **Resolution (ppi)** control.
+*   **Export**: High-resolution export options for PNG and SVG with custom dimensions and **Resolution (ppi)** control.
 
 ## Installation
 

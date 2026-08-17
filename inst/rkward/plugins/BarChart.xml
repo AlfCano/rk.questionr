@@ -19,13 +19,19 @@
 		-->
 	</logic>
 	<dialog label="Bar Chart">
-		<row id="row_vSDDSDVFFO">
+		<row id="row_vSDDSDDFDF">
 			<varselector id="svy_selector" label="Select survey object" />
-			<column id="clm_tDDSDVFFON">
+			<column id="clm_tDDSDDFDFS">
 				<tabbook>
 					<tab label="Data" id="tab_Data">
-						<column id="clm_vSDVFFONA1">
+						<column id="clm_vSDDFDFS18">
 							<varslot id="svy_object" label="Survey Design" source="svy_selector" classes="survey.design svyrep.design" required="true" />
+							<frame label="Data Filtering" id="frm_DtFltrng">
+								<column id="clm_inptlS18D1">
+									<input label="Subset expression (e.g., age &gt; 18)" id="subset_expr" />
+									<checkbox id="drop_levels" label="Drop unused factor levels (forcats::fct_drop)" value="1" />
+								</column>
+							</frame>
 							<varslot id="x_var" label="Variable" source="svy_selector" required="true" />
 							<varslot id="fill_var" label="Fill" source="svy_selector" />
 							<varslot id="facet_var" label="Facet" source="svy_selector" />
@@ -148,6 +154,7 @@
 								<option label="Transparent" value="transparent" checked="true" />
 								<option label="White" value="white" />
 							</dropdown>
+							<saveobject label="Save plot object as" checkable="true" initial="my_plot" id="save_plot" />
 						</column>
 					</tab>
 				</tabbook>

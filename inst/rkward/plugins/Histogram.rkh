@@ -78,6 +78,8 @@
 		</setting>
 		<setting id="dev_bg">
 		</setting>
+		<setting id="save_plot">
+		</setting>
 	</settings>
 	<!--
 		<related>

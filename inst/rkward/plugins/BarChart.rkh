@@ -20,6 +20,11 @@
 		<caption id="tab_Data" />
 		<setting id="svy_object">
 		</setting>
+		<caption id="frm_DtFltrng" />
+		<setting id="subset_expr">
+		</setting>
+		<setting id="drop_levels">
+		</setting>
 		<setting id="x_var">
 		</setting>
 		<setting id="fill_var">
@@ -107,6 +112,8 @@
 		<setting id="dev_res">
 		</setting>
 		<setting id="dev_bg">
+		</setting>
+		<setting id="save_plot">
 		</setting>
 	</settings>
 	<!--

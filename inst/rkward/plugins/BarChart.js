@@ -62,9 +62,23 @@ function calculate(is_preview){
         else { return fullName; }
     }
    
-    var svy = getValue("svy_object"); var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
-    var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
+    var svy = getValue("svy_object");
+    var sub_expr = getValue("subset_expr");
+    var drop = getValue("drop_levels");
     var processed_svy = svy;
+
+    if (sub_expr !== "") {
+        echo("svy_filtered <- subset(" + svy + ", " + sub_expr + ")\n");
+        processed_svy = "svy_filtered";
+
+        if (drop == "1") {
+            // Aplicamos forcats::fct_drop directo al data.frame interno del diseño
+            echo(processed_svy + "$variables <- " + processed_svy + "$variables %>% dplyr::mutate(dplyr::across(tidyselect::where(is.factor), forcats::fct_drop))\n");
+        }
+    }
+   
+    var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
+    var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
 
     // NA Omission
     if (getValue("omit_na") == "1") {
@@ -73,7 +87,8 @@ function calculate(is_preview){
         if(fill) conds.push("!is.na(" + fill + ")");
         if(facet) conds.push("!is.na(" + facet + ")");
         if(conds.length > 0) {
-            echo("svy_clean <- subset(" + svy + ", " + conds.join(" & ") + ")\n");
+            // AQUÍ ESTABA EL ERROR: Cambiamos svy por processed_svy
+            echo("svy_clean <- subset(" + processed_svy + ", " + conds.join(" & ") + ")\n");
             processed_svy = "svy_clean";
         }
     }
@@ -209,6 +224,11 @@ function printout(is_preview){
 	if(!is_preview) {
 		new Header(i18n("Bar Chart results")).print();	
 	}
+    if(getValue("save_plot.active")) {
+        // Regla #3: Asignar al nombre codificado fijo "my_plot"
+        echo("my_plot <- p\n");
+    }
+
     if(!is_preview){
       var graph_options = [];
       graph_options.push("device.type=\"" + getValue("device_type") + "\"");
@@ -218,11 +238,28 @@ function printout(is_preview){
       graph_options.push("bg=\"" + getValue("dev_bg") + "\"");
       echo("rk.graph.on(" + graph_options.join(", ") + ")\n");
     }
+
     echo("try({\n");
-    echo("  print(p)\n");
+    if(getValue("save_plot.active")) {
+        echo("  print(my_plot)\n");
+    } else {
+        echo("  print(p)\n");
+    }
     echo("})\n");
+
     if(!is_preview){ echo("rk.graph.off()\n"); }
   
+	if(!is_preview) {
+		//// save result object
+		// read in saveobject variables
+		var savePlot = getValue("save_plot");
+		var savePlotActive = getValue("save_plot.active");
+		var savePlotParent = getValue("save_plot.parent");
+		// assign object to chosen environment
+		if(savePlotActive) {
+			echo(".GlobalEnv$" + savePlot + " <- my_plot\n");
+		}	
+	}
 
 }
 

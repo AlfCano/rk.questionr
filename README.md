@@ -1,11 +1,19 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.6.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.6.1-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
 [![R Linter](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml/badge.svg)](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml)
 
 This RKWard plugin provides a powerful suite of tools for analyzing and visualizing complex survey data (weighted data). It leverages the `questionr` package alongside `ggplot2` and `survey` to produce statistically correct, publication-ready graphs and tables without writing code.
+
+## What's New in Version 0.6.1
+
+**📊 Statistical Accuracy & Boxplot Refinement**
+
+*   **Restored Tukey Outliers:** Boxplots now correctly display outliers (points beyond $1.5 \times IQR$). We transitioned away from hard-coded absolute quantiles (`stat="identity"`) back to native `ggplot2` weighted calculations, ensuring statistically standard whisker lengths.
+*   **Micro-Dataframe Extraction:** To maintain the massive memory optimizations introduced in v0.6.0 while restoring outliers, the plugin now isolates and extracts *only* the specific columns needed (X, Y, and survey weights) into a micro-dataframe. Plot objects remain extremely lightweight (1-3 MB) instead of dragging the entire survey database.
+*   **Robust Weighted Sorting:** The Boxplot component continues to elegantly sort groups by their true weighted median using `survey::svyby()` under the hood, independently of the visual rendering.
 
 ## What's New in Version 0.6.0
 

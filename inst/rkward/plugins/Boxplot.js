@@ -30,7 +30,7 @@ function preprocess(is_preview){
 
 function calculate(is_preview){
 	// read in variables from dialog
-
+	var varwidth = getValue("varwidth");
 
 	// the R code to be evaluated
 
@@ -68,34 +68,31 @@ function calculate(is_preview){
     var ord = getValue("order_median");
     var inv = getValue("invert_order");
 
-    // TRUCO DE MEMORIA #3: Pre-calcular los 5 cuartiles pesados de la encuesta
-    echo("quantiles_calc <- c(0, 0.25, 0.5, 0.75, 1)\n");
-
+    // TRUCO DE MEMORIA #3: Extraer SOLO 3 columnas (Y, X, pesos) para no perder los outliers
+    echo("plot_data <- data.frame(" + y + " = " + processed_svy + "$variables[[" + "\"" + y + "\"]])\n");
     if (x != "") {
-        echo("plot_data <- survey::svyby(~" + y + ", ~" + x + ", " + processed_svy + ", survey::svyquantile, quantiles=quantiles_calc, keep.var=FALSE, na.rm=TRUE)\n");
+        echo("plot_data$" + x + " <- " + processed_svy + "$variables[[" + "\"" + x + "\"]]\n");
+    }
+    echo("plot_data$.weights <- weights(" + processed_svy + ")\n");
+    echo("plot_data <- na.omit(plot_data)\n");
 
-        // CORRECCIÓN: Uso de comillas dobles escapadas (\") en lugar de simples
-        echo("colnames(plot_data)[2:6] <- c(\"ymin\", \"lower\", \"middle\", \"upper\", \"ymax\")\n");
-
-        if (ord == "1") {
-            var desc_arg = (inv == "1") ? "TRUE" : "FALSE";
-            echo("plot_data <- plot_data[order(plot_data$middle, decreasing=" + desc_arg + "), ]\n");
-            echo("plot_data$" + x + " <- factor(plot_data$" + x + ", levels=plot_data$" + x + ")\n");
-        }
-    } else {
-        echo("q_res <- survey::svyquantile(~" + y + ", " + processed_svy + ", quantiles=quantiles_calc, na.rm=TRUE)\n");
-        echo("q_vec <- as.numeric(q_res[[1]])\n");
-        echo("plot_data <- data.frame(x_dummy = factor(1), ymin=q_vec[1], lower=q_vec[2], middle=q_vec[3], upper=q_vec[4], ymax=q_vec[5])\n");
+    // Ordenamiento por mediana ponderada (si se solicita)
+    if (ord == "1" && x != "") {
+        echo("med_df <- survey::svyby(formula = ~" + y + ", by = ~" + x + ", design = " + processed_svy + ", FUN = survey::svyquantile, quantiles = 0.5, ci = FALSE, keep.var = FALSE, na.rm = TRUE)\n");
+        echo("ordered_levels <- as.character(med_df[order(med_df[[ncol(med_df)]]), 1])\n");
+        if (inv == "1") echo("ordered_levels <- rev(ordered_levels)\n");
+        echo("plot_data$" + x + " <- factor(plot_data$" + x + ", levels = ordered_levels)\n");
     }
 
-    var x_aes = (x == "") ? "x_dummy" : x;
+    var x_aes = (x == "") ? "factor(1)" : x;
     var fill_aes = (fill_grp == "1" && x != "") ? ", fill=" + x : "";
+    var vw = (getValue("varwidth") == "1") ? "TRUE" : "FALSE";
 
-    // Al usar stat="identity", ggplot dibuja la caja directamente desde nuestros 5 números
-    echo("p <- ggplot(plot_data, aes(x=" + x_aes + ", ymin=ymin, lower=lower, middle=middle, upper=upper, ymax=ymax" + fill_aes + ")) + geom_boxplot(stat=\"identity\")\n");
+    // ggplot calculará los cuartiles, bigotes (1.5 IQR) y outliers nativamente tomando en cuenta los pesos (.weights)
+    echo("p <- ggplot(plot_data, aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + ")) + geom_boxplot(varwidth=" + vw + ")\n");
 
     if(fill_grp == "1" && x != "") {
-        echo("n_colors <- nrow(plot_data)\n");
+        echo("n_colors <- length(unique(plot_data$" + x + "))\n");
         echo("if(n_colors > 8) {\n");
         echo("  p <- p + scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(8, \"" + pal + "\"))(n_colors))\n");
         echo("} else {\n");
@@ -131,7 +128,7 @@ function calculate(is_preview){
 
 function printout(is_preview){
 	// read in variables from dialog
-
+	var varwidth = getValue("varwidth");
 
 	// printout the results
 	if(!is_preview) {

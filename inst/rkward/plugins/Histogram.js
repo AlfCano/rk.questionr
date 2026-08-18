@@ -53,10 +53,16 @@ function calculate(is_preview){
         }
     }
    
-    var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
+    var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
     var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
 
-    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \n");
+    // TRUCO DE MEMORIA #4: Extraer SOLO las columnas usadas (de 300 columnas a 3 columnas)
+    echo("plot_data <- data.frame(" + x + " = " + processed_svy + "$variables[[" + "\"" + x + "\"]])\n");
+    if(facet) echo("plot_data$" + facet + " <- " + processed_svy + "$variables[[" + "\"" + facet + "\"]]\n");
+    echo("plot_data$.weights <- weights(" + processed_svy + ")\n");
+    echo("plot_data <- na.omit(plot_data)\n");
+
+    echo("p <- ggplot(plot_data) + \n");
 
     if(dens == "1") {
        echo("  geom_histogram(aes(x=" + x + ", weight=.weights, y=after_stat(density)), bins=" + bins + ", fill=\"" + fill + "\", color=\"white\") + \n");
@@ -97,8 +103,15 @@ function printout(is_preview){
 	if(!is_preview) {
 		new Header(i18n("Histogram results")).print();	
 	}
+    // TRUCO DE MEMORIA #1: Desconectar el gráfico del entorno global
+    echo("p$plot_env <- emptyenv()\n");
+
+    // TRUCO DE MEMORIA #2 (EL DEFINITIVO): Borrar objetos pesados del bloque local
+    // Así evitamos que los "aes()" de ggplot2 los capturen y los guarden en el .RData
+    echo("rm(list = intersect(ls(), c(\"svy_filtered\", \"svy_clean\", \"design_for_ord\")))\n");
+    echo("gc()\n");
+
     if(getValue("save_plot.active")) {
-        // Regla #3: Asignar al nombre codificado fijo "my_plot"
         echo("my_plot <- p\n");
     }
 

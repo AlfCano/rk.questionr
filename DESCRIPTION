@@ -2,8 +2,8 @@ Package: rk.questionr
 Type: Package
 Title: A plugin package to analyze complex survey designs. Includes Bar
         Charts, Histograms, Boxplots, and Frequency Tables.
-Version: 0.5.0
-Date: 2026-08-16
+Version: 0.6.0
+Date: 2026-08-18
 Author: Alfonso Cano
 Maintainer: Alfonso Cano <alfonso.cano@correo.buap.mx>
 Enhances: rkward

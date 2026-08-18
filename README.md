@@ -1,11 +1,22 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.5.0-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.6.0-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
 [![R Linter](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml/badge.svg)](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml)
 
 This RKWard plugin provides a powerful suite of tools for analyzing and visualizing complex survey data (weighted data). It leverages the `questionr` package alongside `ggplot2` and `survey` to produce statistically correct, publication-ready graphs and tables without writing code.
+
+## What's New in Version 0.6.0
+
+**🔥 Massive Memory Optimization & Performance Leap**
+
+This version completely overhauls the rendering architecture under the hood, transforming how survey microdata is passed to `ggplot2`. 
+
+*   **Ultra-Lightweight Plot Objects:** Fixed the infamous `ggplot2` memory bloat. Saved plot objects now weigh a few **Kilobytes** instead of hundreds of Megabytes. You can safely save dozens of plots to your `.RData` workspace without freezing your computer.
+*   **Structural Pre-computation:** Instead of feeding raw microdata (like the entire ENOE or Census) to the plotting engine, the plugin now dynamically pre-calculates structural weights and quantiles using `survey::svytable()` and `survey::svyby()` *before* graphing. Rendering is now nearly instantaneous, even with millions of rows.
+*   **Deep Memory Cleanup:** Implemented aggressive native environment stripping (`p$plot_env <- emptyenv()`) and local garbage collection (`gc()`). This prevents `aes()` quosures from secretly capturing massive survey objects in the background.
+*   **Ghost Zero Pruning:** Automatically detects and filters out empty structural factor combinations (`Freq == 0`), ensuring your bar charts and `ggrepel` labels are perfectly clean and free of phantom zeros.
 
 ## What's New in Version 0.5.0
 

@@ -15,7 +15,7 @@ local({
     ),
     about = list(
       desc = "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables.",
-      version = "0.5.0",
+      version = "0.6.0",
       url = "https://github.com/AlfCano/rk.questionr",
       license = "GPL (>= 3)"
     )
@@ -96,8 +96,15 @@ local({
   )
 
   js_printout_shared <- '
+    // TRUCO DE MEMORIA #1: Desconectar el gráfico del entorno global
+    echo("p$plot_env <- emptyenv()\\n");
+
+    // TRUCO DE MEMORIA #2 (EL DEFINITIVO): Borrar objetos pesados del bloque local
+    // Así evitamos que los "aes()" de ggplot2 los capturen y los guarden en el .RData
+    echo("rm(list = intersect(ls(), c(\\"svy_filtered\\", \\"svy_clean\\", \\"design_for_ord\\")))\\n");
+    echo("gc()\\n");
+
     if(getValue("save_plot.active")) {
-        // Regla #3: Asignar al nombre codificado fijo "my_plot"
         echo("my_plot <- p\\n");
     }
 
@@ -199,14 +206,13 @@ local({
     var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
     var x = getColumnName(x_full); var fill = getColumnName(fill_full); var facet = getColumnName(facet_full);
 
-    // NA Omission
+    // NA Omission (Con tu corrección aplicada: usa processed_svy)
     if (getValue("omit_na") == "1") {
         var conds = [];
         if(x) conds.push("!is.na(" + x + ")");
         if(fill) conds.push("!is.na(" + fill + ")");
         if(facet) conds.push("!is.na(" + facet + ")");
         if(conds.length > 0) {
-            // AQUÍ ESTABA EL ERROR: Cambiamos svy por processed_svy
             echo("svy_clean <- subset(" + processed_svy + ", " + conds.join(" & ") + ")\\n");
             processed_svy = "svy_clean";
         }
@@ -216,52 +222,46 @@ local({
     var inv = getValue("invert_order"); var ord_lvl = getValue("order_by_level_input");
     var pal = getValue("palette_input"); var flip = getValue("coord_flip");
 
+    // TRUCO DE MEMORIA #2: Generar una micro-tabla resumida (Pasa de 300,000 filas a < 50 filas)
+    echo("plot_data <- " + processed_svy + " %>% survey::svytable(~" + x + (fill ? "+"+fill : "") + (facet ? "+"+facet : "") + ", design=.) %>% as.data.frame() %>% dplyr::filter(Freq > 0)\\n");
+
     // --- RELATIVE FREQUENCY LOGIC ---
     if(freq == "rel") {
-        echo("plot_data <- " + processed_svy + " %>% survey::svytable(~" + x + (fill ? "+"+fill : "") + (facet ? "+"+facet : "") + ", design=.) %>% as.data.frame()\\n");
-        // Calculate Proportions
-        echo("plot_data <- plot_data %>% group_by(" + x + (facet ? ","+facet : "") + ") %>% mutate(Prop = Freq/sum(Freq)) %>% ungroup()\\n");
+        echo("plot_data <- plot_data %>% dplyr::group_by(" + x + (facet ? ","+facet : "") + ") %>% dplyr::mutate(Prop = Freq/sum(Freq)) %>% dplyr::ungroup()\\n");
 
-        // Ordering (Using mutate to ensure variable scope)
         if(ord == "1") {
-            var metric_val = "Freq"; // default total
+            var metric_val = "Freq";
             if(fill && ord_lvl) {
-                echo("plot_data <- plot_data %>% group_by(" + x + ") %>% mutate(ord_val = sum(Prop[" + fill + "==\\"" + ord_lvl + "\\"])) %>% ungroup()\\n");
+                echo("plot_data <- plot_data %>% dplyr::group_by(" + x + ") %>% dplyr::mutate(ord_val = sum(Prop[" + fill + "==\\"" + ord_lvl + "\\"])) %>% dplyr::ungroup()\\n");
                 metric_val = "ord_val";
             } else {
-                 echo("plot_data <- plot_data %>% group_by(" + x + ") %>% mutate(ord_val = sum(Freq)) %>% ungroup()\\n");
+                 echo("plot_data <- plot_data %>% dplyr::group_by(" + x + ") %>% dplyr::mutate(ord_val = sum(Freq)) %>% dplyr::ungroup()\\n");
                  metric_val = "ord_val";
             }
-            var desc_arg = (inv == "1") ? "" : ", .desc=TRUE"; // Invert logic for fct_reorder is opposite to sort()
-            echo("plot_data <- plot_data %>% mutate(" + x + " = fct_reorder(" + x + ", " + metric_val + desc_arg + "))\\n");
+            var desc_arg = (inv == "1") ? "" : ", .desc=TRUE";
+            echo("plot_data <- plot_data %>% dplyr::mutate(" + x + " = forcats::fct_reorder(" + x + ", " + metric_val + desc_arg + "))\\n");
         }
-
         echo("p <- ggplot(plot_data, aes(x=" + x + ", y=Prop" + (fill ? ", fill="+fill : "") + ")) + geom_col(position=\\"" + pos + "\\") + scale_y_continuous(labels=scales::percent)\\n");
 
     // --- ABSOLUTE FREQUENCY LOGIC ---
     } else {
         if(ord == "1") {
              if(fill && ord_lvl) {
-                 // Sort by specific fill level
-                 echo("ord_stats <- svytable(~" + x + "+" + fill + ", " + processed_svy + ")\\n");
-                 echo("target_col <- which(colnames(ord_stats) == \\"" + ord_lvl + "\\")\\n");
-                 echo("ord_vals <- if(length(target_col) > 0) ord_stats[, target_col] else margin.table(ord_stats, 1)\\n");
+                 echo("plot_data <- plot_data %>% dplyr::group_by(" + x + ") %>% dplyr::mutate(ord_val = sum(Freq[" + fill + "==\\"" + ord_lvl + "\\"])) %>% dplyr::ungroup()\\n");
              } else {
-                 // Sort by total count
-                 echo("ord_vals <- svytable(~" + x + ", " + processed_svy + ")\\n");
+                 echo("plot_data <- plot_data %>% dplyr::group_by(" + x + ") %>% dplyr::mutate(ord_val = sum(Freq)) %>% dplyr::ungroup()\\n");
              }
-             echo("lvls <- names(sort(ord_vals, decreasing=" + (inv=="1"?"FALSE":"TRUE") + "))\\n");
-             // Update design using update() which is safer
-             echo(processed_svy + " <- update(" + processed_svy + ", " + x + " = factor(" + x + ", levels=lvls))\\n");
+             var desc_arg = (inv == "1") ? "" : ", .desc=TRUE";
+             echo("plot_data <- plot_data %>% dplyr::mutate(" + x + " = forcats::fct_reorder(" + x + ", ord_val" + desc_arg + "))\\n");
         }
-        echo("p <- questionr::ggsurvey(" + processed_svy + ") + geom_bar(aes(x=" + x + ", weight=.weights" + (fill ? ", fill="+fill : "") + "), position=\\"" + pos + "\\")\\n");
+        echo("p <- ggplot(plot_data, aes(x=" + x + ", y=Freq" + (fill ? ", fill="+fill : "") + ")) + geom_col(position=\\"" + pos + "\\")\\n");
     }
 
     // --- COMMON STYLING ---
     if(fill) {
         var legw = getValue("legend_wrap_width");
         var lab_opt = (legw > 0) ? ", labels=scales::label_wrap(" + legw + ")" : "";
-        echo("n_colors <- length(unique(na.omit(" + processed_svy + "$variables[[" + "\\"" + fill + "\\"]])))\\n");
+        echo("n_colors <- length(unique(na.omit(plot_data[[" + "\\"" + fill + "\\"]])))\\n");
         echo("if(n_colors > 8) {\\n");
         echo("  p <- p + scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(8, \\"" + pal + "\\"))(n_colors)" + lab_opt + ")\\n");
         echo("} else {\\n");
@@ -270,7 +270,6 @@ local({
     }
 
     if(flip == "1") echo("p <- p + coord_flip()\\n");
-
     if(facet) {
         var lay = getValue("facet_layout");
         var lay_opt = "";
@@ -290,7 +289,7 @@ local({
        if(style.includes("label")) geom = "geom_label";
        if(style.includes("repel")) geom = "ggrepel::geom_" + style;
 
-       var aes_lbl = (freq == "rel") ? "scales::percent(Prop, accuracy=0." + "0".repeat(dec) + "1)" : "scales::number(after_stat(count), accuracy=1)";
+       var aes_lbl = (freq == "rel") ? "scales::percent(Prop, accuracy=0." + "0".repeat(dec) + "1)" : "scales::number(Freq, accuracy=1)";
        if(pos == "fill") aes_lbl = "scales::percent(after_stat(prop), accuracy=0." + "0".repeat(dec) + "1)";
 
        var opts = ", color=\\"" + col + "\\", size=" + size;
@@ -300,16 +299,9 @@ local({
        var pos_func = "position_stack(vjust=0.5)";
        if(pos == "dodge") pos_func = "position_dodge(width=0.9)";
        if(pos == "fill") pos_func = "position_fill(vjust=0.5)";
+       var aes_extras = fill ? ", group=" + fill : "";
 
-       var aes_extras = "";
-       if(fill) aes_extras = ", group=" + fill;
-
-       if(freq == "rel") {
-           echo("p <- p + " + geom + "(aes(label=" + aes_lbl + aes_extras + "), position=" + pos_func + opts + ")\\n");
-       } else {
-           // Explicit mapping of X is required for stat_count to work in this layer
-           echo("p <- p + " + geom + "(aes(x=" + x + ", label=" + aes_lbl + ", weight=.weights" + aes_extras + "), stat=\\"count\\", position=" + pos_func + opts + ")\\n");
-       }
+       echo("p <- p + " + geom + "(aes(label=" + aes_lbl + aes_extras + "), position=" + pos_func + opts + ")\\n");
     }
     ', js_apply_theme
   )
@@ -325,10 +317,16 @@ local({
   dialog_hist <- rk.XML.dialog(label = "Histogram", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(hist_svy, hist_x, hist_facet), "Options" = hist_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
   js_hist_calc <- paste(js_helpers, js_data_prep, '
-    var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
+    var x = getColumnName(getValue("x_var")); var facet = getColumnName(getValue("facet_var"));
     var bins = getValue("bins"); var fill = getValue("fill_col"); var dens = getValue("show_dens");
 
-    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \\n");
+    // TRUCO DE MEMORIA #4: Extraer SOLO las columnas usadas (de 300 columnas a 3 columnas)
+    echo("plot_data <- data.frame(" + x + " = " + processed_svy + "$variables[[" + "\\"" + x + "\\"]])\\n");
+    if(facet) echo("plot_data$" + facet + " <- " + processed_svy + "$variables[[" + "\\"" + facet + "\\"]]\\n");
+    echo("plot_data$.weights <- weights(" + processed_svy + ")\\n");
+    echo("plot_data <- na.omit(plot_data)\\n");
+
+    echo("p <- ggplot(plot_data) + \\n");
 
     if(dens == "1") {
        echo("  geom_histogram(aes(x=" + x + ", weight=.weights, y=after_stat(density)), bins=" + bins + ", fill=\\"" + fill + "\\", color=\\"white\\") + \\n");
@@ -339,6 +337,7 @@ local({
     if(facet) echo("p <- p + facet_wrap(~" + facet + ")\\n");
     ', js_apply_theme
   )
+
   comp_hist <- rk.plugin.component("Histogram", xml=list(dialog=dialog_hist), js=list(require=c("questionr", "ggplot2"), calculate=js_hist_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_hist))
 
   # =========================================================================================
@@ -359,34 +358,45 @@ local({
           rk.XML.cbox(label = "Invert Order", id.name = "invert_order", value = "1")
       ))
   )
+
   dialog_box <- rk.XML.dialog(label = "Boxplot", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(box_svy, box_y, box_x), "Options" = box_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
-  js_box_calc <- paste(js_helpers, js_data_prep,'
-    var svy = getValue("svy_object"); var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
+ js_box_calc <- paste(js_helpers, js_data_prep,'
+    var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
     var fill_grp = getValue("fill_by_group"); var pal = getValue("palette_input");
 
-
     echo("options(survey.lonely.psu=\\"adjust\\")\\n");
-
     var ord = getValue("order_median");
     var inv = getValue("invert_order");
 
-    if (ord == "1" && x != "") {
-        echo("design_for_ord <- subset(" + processed_svy + ", is.finite(" + y + "))\\n");
-        echo("med_df <- survey::svyby(formula = ~" + y + ", by = ~" + x + ", design = design_for_ord, FUN = survey::svyquantile, quantiles = 0.5, na.rm = TRUE, ci = FALSE, keep.var = FALSE)\\n");
-        echo("ordered_levels <- as.character(med_df[order(med_df[[ncol(med_df)]]), 1])\\n");
-        if (inv == "1") echo("ordered_levels <- rev(ordered_levels)\\n");
-        echo(processed_svy + " <- update(" + processed_svy + ", " + x + " = factor(" + x + ", levels = ordered_levels))\\n");
+    // TRUCO DE MEMORIA #3: Pre-calcular los 5 cuartiles pesados de la encuesta
+    echo("quantiles_calc <- c(0, 0.25, 0.5, 0.75, 1)\\n");
+
+    if (x != "") {
+        echo("plot_data <- survey::svyby(~" + y + ", ~" + x + ", " + processed_svy + ", survey::svyquantile, quantiles=quantiles_calc, keep.var=FALSE, na.rm=TRUE)\\n");
+
+        // CORRECCIÓN: Uso de comillas dobles escapadas (\\") en lugar de simples
+        echo("colnames(plot_data)[2:6] <- c(\\"ymin\\", \\"lower\\", \\"middle\\", \\"upper\\", \\"ymax\\")\\n");
+
+        if (ord == "1") {
+            var desc_arg = (inv == "1") ? "TRUE" : "FALSE";
+            echo("plot_data <- plot_data[order(plot_data$middle, decreasing=" + desc_arg + "), ]\\n");
+            echo("plot_data$" + x + " <- factor(plot_data$" + x + ", levels=plot_data$" + x + ")\\n");
+        }
+    } else {
+        echo("q_res <- survey::svyquantile(~" + y + ", " + processed_svy + ", quantiles=quantiles_calc, na.rm=TRUE)\\n");
+        echo("q_vec <- as.numeric(q_res[[1]])\\n");
+        echo("plot_data <- data.frame(x_dummy = factor(1), ymin=q_vec[1], lower=q_vec[2], middle=q_vec[3], upper=q_vec[4], ymax=q_vec[5])\\n");
     }
 
-    echo("p <- questionr::ggsurvey(" + processed_svy + ") + \\n");
-    var x_aes = (x == "") ? "factor(1)" : x;
+    var x_aes = (x == "") ? "x_dummy" : x;
     var fill_aes = (fill_grp == "1" && x != "") ? ", fill=" + x : "";
-    var vw = (getValue("varwidth") == "1") ? "TRUE" : "FALSE";
-    echo("  geom_boxplot(aes(x=" + x_aes + ", y=" + y + ", weight=.weights" + fill_aes + "), varwidth=" + vw + ")\\n");
+
+    // Al usar stat="identity", ggplot dibuja la caja directamente desde nuestros 5 números
+    echo("p <- ggplot(plot_data, aes(x=" + x_aes + ", ymin=ymin, lower=lower, middle=middle, upper=upper, ymax=ymax" + fill_aes + ")) + geom_boxplot(stat=\\"identity\\")\\n");
 
     if(fill_grp == "1" && x != "") {
-        echo("n_colors <- length(unique(na.omit(" + svy + "$variables[[" + "\\"" + x + "\\"]])))\\n");
+        echo("n_colors <- nrow(plot_data)\\n");
         echo("if(n_colors > 8) {\\n");
         echo("  p <- p + scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(8, \\"" + pal + "\\"))(n_colors))\\n");
         echo("} else {\\n");
@@ -398,6 +408,7 @@ local({
     if(x == "") echo("p <- p + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(x=NULL)\\n");
     ', js_apply_theme
   )
+
   comp_box <- rk.plugin.component("Boxplot", xml=list(dialog=dialog_box), js=list(require=c("questionr", "ggplot2", "RColorBrewer", "survey"), calculate=js_box_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_box))
 
   # =========================================================================================

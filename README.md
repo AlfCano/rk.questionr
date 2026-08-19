@@ -1,11 +1,18 @@
 # rk.questionr: Complex Survey Analysis & Visualization
 
-![Version](https://img.shields.io/badge/Version-0.6.1-blue.svg)
+![Version](https://img.shields.io/badge/Version-0.6.2-blue.svg)
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![RKWard](https://img.shields.io/badge/Platform-RKWard-green)
 [![R Linter](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml/badge.svg)](https://github.com/AlfCano/rk.questionr/actions/workflows/lintr.yml)
 
 This RKWard plugin provides a powerful suite of tools for analyzing and visualizing complex survey data (weighted data). It leverages the `questionr` package alongside `ggplot2` and `survey` to produce statistically correct, publication-ready graphs and tables without writing code.
+
+## What's New in Version 0.6.2
+
+**🎯 Smart Variable Selector (Auto-Focus UI)**
+
+* **Context-Aware Workspace:** The plugin interface now features an advanced dynamic GUI script. The moment you drag and drop a survey design object into the input slot, the left-hand variable selector instantly hides the rest of your global environment and focuses **exclusively on the columns inside your survey**.
+* **Zero-Click Navigation:** By automatically targeting the internal `$variables` data frame of the `survey.design` object, researchers no longer need to manually expand complex lists or scroll through hundreds of unrelated workspace objects, drastically speeding up workflow.
 
 ## What's New in Version 0.6.1
 

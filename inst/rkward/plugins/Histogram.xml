@@ -11,12 +11,17 @@
 		</dependencies>
 	-->
 	<logic>
-		<!--
-			<convert id="!edit!" sources="!edit!" mode="equals" standard="!edit!" />
-		-->
-		<!--
-			<connect governor="!edit!.state" client="!edit!.enabled" />
-		-->
+		<script>
+			gui.addChangeCommand("svy_object.available", "update_root()");
+	    function update_root() {
+	       var obj = gui.getValue("svy_object.available");
+	       if (obj !== "") {
+	          gui.setValue("svy_selector.root", obj + "$variables");
+	       } else {
+	          gui.setValue("svy_selector.root", "");
+	       }
+	    }
+		</script>
 	</logic>
 	<dialog label="Histogram">
 		<row id="row_vSDDSDNVFV">

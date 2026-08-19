@@ -15,7 +15,7 @@ local({
     ),
     about = list(
       desc = "A plugin package to analyze complex survey designs. Includes Bar Charts, Histograms, Boxplots, and Frequency Tables.",
-      version = "0.6.1",
+      version = "0.6.2",
       url = "https://github.com/AlfCano/rk.questionr",
       license = "GPL (>= 3)"
     )
@@ -38,6 +38,18 @@ local({
         else { return fullName; }
     }
   '
+
+   gui_script <- XiMpLe::XMLNode("script", '
+    gui.addChangeCommand("svy_object.available", "update_root()");
+    function update_root() {
+       var obj = gui.getValue("svy_object.available");
+       if (obj !== "") {
+          gui.setValue("svy_selector.root", obj + "$variables");
+       } else {
+          gui.setValue("svy_selector.root", "");
+       }
+    }
+  ')
 
   # --- NUEVOS ELEMENTOS DE UI COMPARTIDOS (v0.5.0) ---
   data_filters <- rk.XML.frame(label = "Data Filtering", child = rk.XML.col(
@@ -201,6 +213,8 @@ local({
 
   dialog_bar <- rk.XML.dialog(label = "Bar Chart", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = bar_data_tab, "Options" = bar_opts_tab, "Value Labels" = value_labels_tab, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
+  logic_bar <- rk.XML.logic(gui_script)
+
   # Rewritten Bar Chart Logic for Robustness (Fixes object not found in relative freq)
     js_bar_calc <- paste(js_helpers, js_data_prep, '
     var x_full = getValue("x_var"); var fill_full = getValue("fill_var"); var facet_full = getValue("facet_var");
@@ -314,6 +328,9 @@ local({
   hist_x <- rk.XML.varslot(label = "Numeric Variable", source = "svy_selector", required = TRUE, id.name = "x_var", classes = c("numeric", "integer"))
   hist_facet <- rk.XML.varslot(label = "Facet Variable", source = "svy_selector", id.name = "facet_var", classes = c("factor", "character"))
   hist_opts <- rk.XML.col(rk.XML.spinbox(label = "Bins", id.name = "bins", min = 1, max = 100, initial = 30), rk.XML.input(label = "Fill", id.name = "fill_col", initial = "steelblue"), rk.XML.cbox(label = "Density Curve", id.name = "show_dens", value = "1"))
+
+  logic_hist <- rk.XML.logic(gui_script)
+
   dialog_hist <- rk.XML.dialog(label = "Histogram", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(hist_svy, hist_x, hist_facet), "Options" = hist_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
 
   js_hist_calc <- paste(js_helpers, js_data_prep, '
@@ -338,7 +355,7 @@ local({
     ', js_apply_theme
   )
 
-  comp_hist <- rk.plugin.component("Histogram", xml=list(dialog=dialog_hist), js=list(require=c("questionr", "ggplot2"), calculate=js_hist_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_hist))
+  comp_hist <- rk.plugin.component("Histogram", xml=list(dialog=dialog_hist, logic=logic_hist), js=list(require=c("questionr", "ggplot2"), calculate=js_hist_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_hist))
 
   # =========================================================================================
   # --- COMPONENT 3: Survey Boxplot ---
@@ -360,6 +377,8 @@ local({
   )
 
   dialog_box <- rk.XML.dialog(label = "Boxplot", child = rk.XML.row(svy_selector, rk.XML.col(rk.XML.tabbook(tabs = list("Data" = rk.XML.col(box_svy, box_y, box_x), "Options" = box_opts, "Labels" = labels_tab, "Theme" = theme_tab, "Output" = device_tab)), rk.XML.preview(id.name="plot_preview"))))
+
+  logic_box <- rk.XML.logic(gui_script)
 
  js_box_calc <- paste(js_helpers, js_data_prep,'
     var y = getColumnName(getValue("y_var")); var x = getColumnName(getValue("x_var"));
@@ -406,7 +425,7 @@ local({
     ', js_apply_theme
   )
 
-  comp_box <- rk.plugin.component("Boxplot", xml=list(dialog=dialog_box), js=list(require=c("questionr", "ggplot2", "RColorBrewer", "survey"), calculate=js_box_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_box))
+  comp_box <- rk.plugin.component("Boxplot", xml=list(dialog=dialog_box, logic=logic_box), js=list(require=c("questionr", "ggplot2", "RColorBrewer", "survey"), calculate=js_box_calc, printout=js_printout_shared), hierarchy=h_graphs, rkh=list(help=help_box))
 
   # =========================================================================================
   # --- COMPONENT 4: Survey Frequency Table ---
@@ -418,6 +437,8 @@ local({
   freq_save <- rk.XML.saveobj(label = "Save Frequency Table", initial = "freq_res", id.name = "save_freq")
 
   dialog_freq <- rk.XML.dialog(label = "Frequency Table", child = rk.XML.row(svy_selector, rk.XML.col(freq_svy, freq_var, freq_opts, freq_save)))
+
+  logic_freq <- rk.XML.logic(gui_script)
 
   js_freq_calc <- paste(js_helpers, '
       var svy = getValue("svy_object"); var x = getColumnName(getValue("x_var"));
@@ -434,7 +455,8 @@ local({
       echo("rk.header(\\"Weighted Frequency Table: " + x + "\\")\\n");
       echo("rk.results(freq_res)\\n");
   ')
-  comp_freq <- rk.plugin.component("Frequency Table", xml=list(dialog=dialog_freq), js=list(require="questionr", calculate=js_freq_calc, printout=js_freq_print), hierarchy=list("Survey", "Descriptive"), rkh=list(help=help_freq))
+
+  comp_freq <- rk.plugin.component("Frequency Table", xml=list(dialog=dialog_freq, logic=logic_freq), js=list(require="questionr", calculate=js_freq_calc, printout=js_freq_print), hierarchy=list("Survey", "Descriptive"), rkh=list(help=help_freq))
 
   # =========================================================================================
   # Final SKELETON
@@ -442,7 +464,7 @@ local({
   rk.plugin.skeleton(
     about = package_about,
     path = ".",
-    xml = list(dialog = dialog_bar),
+    xml = list(dialog = dialog_bar, logic = logic_bar), # <--- AGREGAR logic = logic_bar
     js = list(
         require = c("questionr", "ggplot2", "survey", "ggrepel", "scales", "dplyr", "forcats", "RColorBrewer"),
         calculate = js_bar_calc,
